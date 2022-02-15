@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
 import 'antd/dist/antd.css';
+import { BrowserRouter } from 'react-router-dom';
 
 import './index.css';
 import { Provider } from 'react-redux';
@@ -12,9 +13,11 @@ import Routes from './app/routes';
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <DefaultLayout>
-        <Routes />
-      </DefaultLayout>
+      <BrowserRouter>
+        <DefaultLayout>
+          <Routes />
+        </DefaultLayout>
+      </ BrowserRouter>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')
