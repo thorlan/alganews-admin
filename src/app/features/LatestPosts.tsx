@@ -1,6 +1,6 @@
 import { Card, Col, Row, Avatar } from "antd";
 import { useEffect } from "react";
-import useLatestPosts from "../../core/core/useLatestPosts"
+import useLatestPosts from "../../core/hooks/useLatestPosts"
 
 export default function LatestPosts() {
 
