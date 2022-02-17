@@ -1,4 +1,4 @@
-import { Table, Tag, Switch, Button } from "antd";
+import { Table, Tag, Switch, Button, Typography, Space, Avatar } from "antd";
 import { format } from "date-fns";
 import { User } from "orlandini-sdk";
 import { useEffect } from "react";
@@ -8,7 +8,7 @@ import useUsers from "../../core/hooks/useUsers"
 
 export default function UserList() {
 
-    const { users, fetchUsers } = useUsers();
+    const { users, fetchUsers, toggleUserStatus } = useUsers();
 
     useEffect(() => {
         fetchUsers();
@@ -21,10 +21,24 @@ export default function UserList() {
                 {
                     dataIndex: 'name',
                     title: 'Nome',
+                    width: 160,
+                    render(name: string, row) {
+                        return <Space>
+                            <Avatar size={'small'} src={row.avatarUrls.small} />
+                            <Typography.Text
+                                ellipsis
+                                style={{ maxWidth: 120 }}
+                            >
+                                {name}
+                            </Typography.Text>
+                        </Space>
+                    }
                 },
                 {
                     dataIndex: 'email',
                     title: 'Email',
+                    ellipsis: true,
+                    width: 240,
                 },
                 {
                     dataIndex: 'role',
@@ -52,8 +66,8 @@ export default function UserList() {
                     dataIndex: 'active',
                     title: 'Ativo',
                     align: 'center',
-                    render(active: boolean) {
-                        return <Switch defaultChecked={active} />
+                    render(active: boolean, user) {
+                        return <Switch onChange={() => toggleUserStatus(user)} defaultChecked={active} />
                     }
                 },
                 {
