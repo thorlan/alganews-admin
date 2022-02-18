@@ -14,9 +14,11 @@ const initialState: UserState = {
 export const toggleUserStatus = createAsyncThunk(
     'user/toggleUserStatus',
     async (user: User.Summary | User.Detailed) => {
-        return user.active
-            ? UserService.deactivateExistingUser(user.id)
-            : UserService.activateExistingUser(user.id)
+        user.active
+            ? await UserService.deactivateExistingUser(user.id)
+            : await UserService.activateExistingUser(user.id)
+
+        return user;
     })
 
 export const getAllUsers = createAsyncThunk('user/getAllUsers', async () => {
@@ -33,6 +35,14 @@ export default createReducer(initialState, (builder => {
         .addCase(getAllUsers.fulfilled, (state, action) => {
             state.list = action.payload;
         })
+        // .addCase(toggleUserStatus.fulfilled, (state, action) => {
+        //     state.list = state.list.map(user => {
+        //         if (user.id === action.payload.id) {
+        //             return { ...user, active: !user.active }
+        //         }
+        //         return user
+        //     });
+        // })
         .addMatcher(success, (state) => {
             state.fetching = false;
         })
