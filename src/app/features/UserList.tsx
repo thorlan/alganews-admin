@@ -1,4 +1,4 @@
-import { Table, Tag, Switch, Button, Typography, Space, Avatar, Card, Input } from "antd";
+import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions } from "antd";
 import { format } from "date-fns";
 import { User } from "orlandini-sdk";
 import { useEffect } from "react";
@@ -9,7 +9,7 @@ import { ColumnProps } from "antd/lib/table";
 
 export default function UserList() {
 
-    const { users, fetchUsers, toggleUserStatus } = useUsers();
+    const { users, fetchUsers, toggleUserStatus, fetching } = useUsers();
 
     useEffect(() => {
         fetchUsers();
@@ -57,29 +57,65 @@ export default function UserList() {
 
     return <>
         <Table<User.Summary>
+            loading={fetching}
             dataSource={users}
+            pagination={false}
+            rowKey={'id'}
             columns={[
+                {
+                    title: "Usuários",
+                    responsive: ['xs'],
+                    render(user: User.Summary) {
+                        return <Descriptions column={1} size={'small'}>
+                            <Descriptions.Item label={"Nome"}>
+                                {user.name}
+                            </Descriptions.Item>
+                            <Descriptions.Item label={"Email"}>
+                                {user.email}
+                            </Descriptions.Item>
+                            <Descriptions.Item label={"Criação"}>
+                                {format(new Date(user.createdAt), 'dd/MM/yyyy')}
+                            </Descriptions.Item>
+                            <Descriptions.Item label={"Perfil"}>
+                                <Tag color={user.role === 'MANAGER' ? 'red' : 'blue'}>
+                                    {user.role === 'EDITOR'
+                                        ? 'Editor'
+                                        : user.role === 'MANAGER'
+                                            ? 'Gerente'
+                                            : 'Assistente'}
+                                </Tag>
+                            </Descriptions.Item>
+                            <Descriptions.Item label={"Ações"}>
+                                <Button size='small' icon={<EyeOutlined />} />
+                                <Button size='small' icon={<EditOutlined />} />
+                            </Descriptions.Item>
+                        </Descriptions>
+                    }
+                },
+
+                {
+                    dataIndex: 'avatarUrls',
+                    title: '',
+                    width: 48,
+                    fixed: 'left',
+                    responsive: ['sm'],
+                    render(avatarUrls: User.Summary['avatarUrls']) {
+                        return <Avatar size={'small'} src={avatarUrls.small} />
+                    }
+                },
                 {
                     dataIndex: 'name',
                     title: 'Nome',
                     width: 160,
+                    responsive: ['sm'],
                     ...getColumnSearchProps('name', 'Nome'),
-                    render(name: string, row) {
-                        return <Space>
-                            <Avatar size={'small'} src={row.avatarUrls.small} />
-                            <Typography.Text
-                                ellipsis
-                                style={{ maxWidth: 120 }}
-                            >
-                                {name}
-                            </Typography.Text>
-                        </Space>
-                    }
+                    ellipsis: true
                 },
                 {
                     dataIndex: 'email',
                     title: 'Email',
                     ellipsis: true,
+                    responsive: ['sm'],
                     width: 240,
                     ...getColumnSearchProps('email', 'Email')
                 },
@@ -87,6 +123,8 @@ export default function UserList() {
                     dataIndex: 'role',
                     title: 'Perfil',
                     align: 'center',
+                    responsive: ['sm'],
+                    width: 100,
                     render(role) {
                         return <Tag color={role === 'MANAGER' ? 'red' : 'blue'}>
                             {role === 'EDITOR'
@@ -101,6 +139,8 @@ export default function UserList() {
                     dataIndex: 'createdAt',
                     title: 'Criação',
                     align: 'center',
+                    responsive: ['sm'],
+                    width: 120,
                     render(createdAt: string) {
                         return format(new Date(createdAt), 'dd/MM/yyyy')
                     }
@@ -109,6 +149,8 @@ export default function UserList() {
                     dataIndex: 'active',
                     title: 'Ativo',
                     align: 'center',
+                    responsive: ['sm'],
+                    width: 100,
                     render(active: boolean, user) {
                         return <Switch onChange={() => toggleUserStatus(user)} defaultChecked={active} />
                     }
@@ -117,6 +159,8 @@ export default function UserList() {
                     dataIndex: 'id',
                     title: 'Ações',
                     align: 'center',
+                    responsive: ['sm'],
+                    width: 100,
                     render() {
                         return <>
                             <Button size='small' icon={<EyeOutlined />} />
