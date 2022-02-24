@@ -32,6 +32,35 @@ export default function UserForm() {
     return (
         <Form
             layout={'vertical'}
+
+            onFinishFailed={(fields) => {
+                let bankAccountErrors = 0;
+                let personalDataErrors = 0;
+
+                fields.errorFields.forEach(({ name }) => {
+                    if (name.includes('bankAccount'))
+                        bankAccountErrors++;
+                    if (
+                        name.includes('location') ||
+                        name.includes('skills') ||
+                        name.includes('phone') ||
+                        name.includes('taxpayerId') ||
+                        name.includes('pricePerWord')
+                    )
+                        personalDataErrors++;
+                });
+
+                if (bankAccountErrors >= 1) {
+                    window.alert(
+                        `existem ${bankAccountErrors} erros na aba dados bancários`
+                    );
+                }
+                if (personalDataErrors >= 1) {
+                    window.alert(
+                        `existem ${personalDataErrors} erros na aba dados pessoais`
+                    );
+                }
+            }}
             onFinish={(form: User.Input) => {
                 console.log(form);
             }}
