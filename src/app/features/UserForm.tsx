@@ -10,16 +10,31 @@ import {
     Tabs,
     Upload,
     Button,
+    notification,
 } from 'antd';
-import React, { useCallback, useState } from 'react';
-import { FileService, User } from 'orlandini-sdk';
+import React, {
+    useCallback,
+    useEffect,
+    useState,
+} from 'react';
+import {
+    FileService,
+    User,
+    UserService,
+} from 'orlandini-sdk';
 import { UserOutlined } from '@ant-design/icons';
 import ImageCrop from 'antd-img-crop';
+import CustomError from 'orlandini-sdk/dist/CustomError';
 
 const { TabPane } = Tabs;
 
 export default function UserForm() {
+    const [form] = Form.useForm<User.Input>();
+
     const [avatar, setAvatar] = useState('');
+    const [activeTab, setActiveTab] = useState<
+        'personal' | 'bankAccount'
+    >('personal');
 
     const handleAvatarUpload = useCallback(
         async (file: File) => {
@@ -29,10 +44,16 @@ export default function UserForm() {
         []
     );
 
+    useEffect(() => {
+        form.setFieldsValue({
+            avatarUrl: avatar || undefined,
+        });
+    }, [avatar]);
+
     return (
         <Form
+            form={form}
             layout={'vertical'}
-
             onFinishFailed={(fields) => {
                 let bankAccountErrors = 0;
                 let personalDataErrors = 0;
@@ -50,19 +71,51 @@ export default function UserForm() {
                         personalDataErrors++;
                 });
 
-                if (bankAccountErrors >= 1) {
-                    window.alert(
-                        `existem ${bankAccountErrors} erros na aba dados bancários`
-                    );
+                if (bankAccountErrors > personalDataErrors) {
+                    setActiveTab('bankAccount');
                 }
-                if (personalDataErrors >= 1) {
-                    window.alert(
-                        `existem ${personalDataErrors} erros na aba dados pessoais`
-                    );
+                if (personalDataErrors > bankAccountErrors) {
+                    setActiveTab('personal');
                 }
             }}
-            onFinish={(form: User.Input) => {
-                console.log(form);
+            onFinish={async (user: User.Input) => {
+                try {
+                    await UserService.insertNewUser(user);
+                    notification.success({
+                        message: 'Sucesso',
+                        description: 'usuário criado com sucesso',
+                    });
+                } catch (error) {
+                    if (error instanceof CustomError) {
+                        if (error.data?.objects) {
+                            form.setFields(
+                                error.data.objects.map((error) => {
+                                    return {
+                                        name: error.name
+                                            ?.split(/(\.|\[|\])/gi)
+                                            .filter(
+                                                (str) =>
+                                                    str !== '.' &&
+                                                    str !== '[' &&
+                                                    str !== ']' &&
+                                                    str !== ''
+                                            )
+                                            .map((str) =>
+                                                isNaN(Number(str))
+                                                    ? str
+                                                    : Number(str)
+                                            ) as string[],
+                                        errors: [error.userMessage],
+                                    };
+                                })
+                            );
+                        }
+                    } else {
+                        notification.error({
+                            message: 'Houve um erro',
+                        });
+                    }
+                }
             }}
         >
             <Row gutter={24} align={'middle'}>
@@ -86,6 +139,9 @@ export default function UserForm() {
                             />
                         </Upload>
                     </ImageCrop>
+                    <Form.Item name={'avatarUrl'} hidden>
+                        <Input hidden />
+                    </Form.Item>
                 </Col>
                 <Col lg={8}>
                     <Form.Item
@@ -95,6 +151,10 @@ export default function UserForm() {
                             {
                                 required: true,
                                 message: 'O campo é obrigatório',
+                            },
+                            {
+                                max: 255,
+                                message: `O nome não pode ter mais de 255 caracteres`,
                             },
                         ]}
                     >
@@ -125,6 +185,14 @@ export default function UserForm() {
                                 required: true,
                                 message: 'O campo é obrigatório',
                             },
+                            {
+                                max: 255,
+                                message: `A biografia não pode ter mais de 255 caracteres`,
+                            },
+                            {
+                                min: 10,
+                                message: `A biografia não pode ter menos de 10 caracteres`,
+                            },
                         ]}
                     >
                         <Input.TextArea rows={5} />
@@ -141,6 +209,11 @@ export default function UserForm() {
                             {
                                 required: true,
                                 message: 'O campo é obrigatório',
+                            },
+                            {
+                                type: 'enum',
+                                enum: ['EDITOR', 'ASSISTANT', 'MANAGER'],
+                                message: `O Perfil precisar ser editor, assitente ou gerente`,
                             },
                         ]}
                     >
@@ -166,6 +239,10 @@ export default function UserForm() {
                                 required: true,
                                 message: 'O campo é obrigatório',
                             },
+                            {
+                                max: 255,
+                                message: `O email não pode ter mais de 255 caracteres`,
+                            },
                         ]}
                     >
                         <Input
@@ -179,7 +256,15 @@ export default function UserForm() {
                 </Col>
 
                 <Col lg={24}>
-                    <Tabs defaultActiveKey={'personal'}>
+                    <Tabs
+                        defaultActiveKey={'personal'}
+                        activeKey={activeTab}
+                        onChange={(tab) =>
+                            setActiveTab(
+                                tab as 'personal' | 'bankAccount'
+                            )
+                        }
+                    >
                         <TabPane
                             key={'personal'}
                             tab={'Dados pessoais'}
@@ -194,6 +279,10 @@ export default function UserForm() {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
                                             },
+                                            {
+                                                max: 50,
+                                                message: `O país não pode ter mais de 50 caracteres`,
+                                            },
                                         ]}
                                     >
                                         <Input placeholder={'E.g.: Brasil'} />
@@ -207,6 +296,10 @@ export default function UserForm() {
                                             {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
+                                            },
+                                            {
+                                                max: 50,
+                                                message: `O estado não pode ter mais de 50 caracteres`,
                                             },
                                         ]}
                                     >
@@ -224,6 +317,10 @@ export default function UserForm() {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
                                             },
+                                            {
+                                                max: 255,
+                                                message: `A cidade não pode ter mais de 255 caracteres`,
+                                            },
                                         ]}
                                     >
                                         <Input placeholder={'E.g.: Vitória'} />
@@ -237,6 +334,10 @@ export default function UserForm() {
                                             {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
+                                            },
+                                            {
+                                                max: 20,
+                                                message: `O telefone não pode ter mais de 20 caracteres`,
                                             },
                                         ]}
                                     >
@@ -253,6 +354,10 @@ export default function UserForm() {
                                             {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
+                                            },
+                                            {
+                                                max: 14,
+                                                message: `O CPF não pode ter mais de 14 caracteres`,
                                             },
                                         ]}
                                     >
@@ -285,6 +390,10 @@ export default function UserForm() {
                                                             required: true,
                                                             message:
                                                                 'O campo é obrigatório',
+                                                        },
+                                                        {
+                                                            max: 50,
+                                                            message: `A habilidade não pode ter mais de 50 caracteres`,
                                                         },
                                                     ]}
                                                 >
@@ -331,6 +440,14 @@ export default function UserForm() {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
                                             },
+                                            {
+                                                max: 3,
+                                                message: `A instituição precisa ter 3 caracteres`,
+                                            },
+                                            {
+                                                min: 3,
+                                                message: `A instituição precisa ter 3 caracteres`,
+                                            },
                                         ]}
                                     >
                                         <Input placeholder={'260'} />
@@ -345,6 +462,14 @@ export default function UserForm() {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
                                             },
+                                            {
+                                                max: 10,
+                                                message: `A agência precisa ter no máximo 10 caracteres`,
+                                            },
+                                            {
+                                                min: 1,
+                                                message: `A agência precisa ter no mínimo 1 caractere`,
+                                            },
                                         ]}
                                     >
                                         <Input placeholder={'0001'} />
@@ -353,7 +478,7 @@ export default function UserForm() {
                                 <Col lg={8}>
                                     <Form.Item
                                         label={'Conta sem dígito'}
-                                        name={['bankAccount', 'accountNumber']}
+                                        name={['bankAccount', 'number']}
                                         rules={[
                                             {
                                                 required: true,
@@ -372,6 +497,10 @@ export default function UserForm() {
                                             {
                                                 required: true,
                                                 message: 'O campo é obrigatório',
+                                            },
+                                            {
+                                                max: 1,
+                                                message: `O dígito precisa ser único`,
                                             },
                                         ]}
                                     >
