@@ -25,6 +25,7 @@ import {
 import { UserOutlined } from '@ant-design/icons';
 import ImageCrop from 'antd-img-crop';
 import CustomError from 'orlandini-sdk/dist/CustomError';
+import MaskedInput from 'antd-mask-input';
 
 const { TabPane } = Tabs;
 
@@ -53,6 +54,7 @@ export default function UserForm() {
     return (
         <Form
             form={form}
+            autoComplete={'off'}
             layout={'vertical'}
             onFinishFailed={(fields) => {
                 let bankAccountErrors = 0;
@@ -79,8 +81,14 @@ export default function UserForm() {
                 }
             }}
             onFinish={async (user: User.Input) => {
+                const userDTO: User.Input = {
+                    ...user,
+                    phone: user.phone.replace(/\D/g, ''),
+                    taxpayerId: user.taxpayerId.replace(/\D/g, '')
+                }
+
                 try {
-                    await UserService.insertNewUser(user);
+                    await UserService.insertNewUser(userDTO);
                     notification.success({
                         message: 'Sucesso',
                         description: 'usuário criado com sucesso',
@@ -109,6 +117,11 @@ export default function UserForm() {
                                     };
                                 })
                             );
+                        } else {
+                            notification.error({
+                                message: error.message,
+                                description: error.data?.detail
+                            });
                         }
                     } else {
                         notification.error({
@@ -341,7 +354,8 @@ export default function UserForm() {
                                             },
                                         ]}
                                     >
-                                        <Input
+                                        <MaskedInput
+                                            mask='(11) 11111-1111'
                                             placeholder={'(27) 99999-0000'}
                                         />
                                     </Form.Item>
@@ -361,7 +375,10 @@ export default function UserForm() {
                                             },
                                         ]}
                                     >
-                                        <Input placeholder={'111.222.333-44'} />
+                                        <MaskedInput
+                                            mask='111.111.111-11'
+                                            placeholder={'111.222.333-44'}
+                                        />
                                     </Form.Item>
                                 </Col>
                                 <Col lg={8}>
@@ -414,6 +431,19 @@ export default function UserForm() {
                                                         {
                                                             required: true,
                                                             message: '',
+                                                        },
+                                                        {
+                                                            async validator(
+                                                                field,
+                                                                value
+                                                            ) {
+                                                                if (isNaN(Number(value)))
+                                                                    throw 'Apenas números';
+                                                                if (Number(value) > 100)
+                                                                    throw 'Máximo é 100';
+                                                                if (Number(value) < 0)
+                                                                    throw 'Mínimo é 0';
+                                                            },
                                                         },
                                                     ]}
                                                 >
