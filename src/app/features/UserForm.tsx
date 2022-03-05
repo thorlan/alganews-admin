@@ -29,7 +29,13 @@ import MaskedInput from 'antd-mask-input';
 
 const { TabPane } = Tabs;
 
-export default function UserForm() {
+type UserFormType = User.Detailed;
+
+interface UserFormProps {
+    user?: UserFormType
+}
+
+export default function UserForm(props: UserFormProps) {
     const [form] = Form.useForm<User.Input>();
 
     const [avatar, setAvatar] = useState('');
@@ -130,6 +136,7 @@ export default function UserForm() {
                     }
                 }
             }}
+            initialValues={props.user}
         >
             <Row gutter={24} align={'middle'}>
                 <Col lg={4}>
@@ -438,11 +445,11 @@ export default function UserForm() {
                                                                 value
                                                             ) {
                                                                 if (isNaN(Number(value)))
-                                                                    throw 'Apenas números';
+                                                                    throw new Error('Apenas números');
                                                                 if (Number(value) > 100)
-                                                                    throw 'Máximo é 100';
+                                                                    throw new Error('Máximo é 100');
                                                                 if (Number(value) < 0)
-                                                                    throw 'Mínimo é 0';
+                                                                    throw new Error('Mínimo é 0');
                                                             },
                                                         },
                                                     ]}

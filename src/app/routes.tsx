@@ -10,9 +10,12 @@ import CashFlowExpensesView from './views/CashFlowExpenses.view';
 import { useEffect } from 'react';
 import CustomError from 'orlandini-sdk/dist/CustomError';
 import { message, notification } from 'antd';
+import UserEditView from './views/UserEdit.view';
 
 export default function Routes() {
+
     useEffect(() => {
+
         window.onunhandledrejection = ({ reason }) => {
             if (reason instanceof CustomError) {
                 if (reason.data?.objects) {
@@ -34,7 +37,13 @@ export default function Routes() {
                 });
             }
         };
+
+        return () => {
+            window.onunhandledrejection = null;
+        }
+
     }, []);
+
     return (
         <Switch>
             <Route path={'/'} exact component={HomeView} />
@@ -42,6 +51,11 @@ export default function Routes() {
                 path={'/usuarios/cadastro'}
                 exact
                 component={UserCreateView}
+            />
+            <Route
+                path={'/usuarios/edicao/:id'}
+                exact
+                component={UserEditView}
             />
             <Route
                 path={'/usuarios'}

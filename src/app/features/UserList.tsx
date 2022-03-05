@@ -125,6 +125,9 @@ export default function UserList() {
                     align: 'center',
                     responsive: ['sm'],
                     width: 100,
+                    sorter(a, b) {
+                        return a.role.localeCompare(b.role);
+                    },
                     render(role) {
                         return <Tag color={role === 'MANAGER' ? 'red' : 'blue'}>
                             {role === 'EDITOR'
@@ -141,6 +144,9 @@ export default function UserList() {
                     align: 'center',
                     responsive: ['sm'],
                     width: 120,
+                    sorter(a, b) {
+                        return new Date(a.createdAt) > new Date(b.createdAt) ? 1 : -1;
+                    },
                     render(createdAt: string) {
                         return format(new Date(createdAt), 'dd/MM/yyyy')
                     }
@@ -152,7 +158,7 @@ export default function UserList() {
                     responsive: ['sm'],
                     width: 100,
                     render(active: boolean, user) {
-                        return <Switch onChange={() => toggleUserStatus(user)} defaultChecked={active} />
+                        return <Switch onChange={() => toggleUserStatus(user)} checked={active} />
                     }
                 },
                 {
