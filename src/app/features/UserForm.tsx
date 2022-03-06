@@ -17,6 +17,9 @@ import React, {
     useEffect,
     useState,
 } from 'react';
+
+import { Moment } from 'moment';
+
 import {
     FileService,
     User,
@@ -29,7 +32,14 @@ import MaskedInput from 'antd-mask-input';
 
 const { TabPane } = Tabs;
 
-type UserFormType = User.Detailed;
+type UserFormType = {
+    createdAt: Moment;
+    updatedAt: Moment;
+    birthdate: Moment;
+} & Omit<
+    User.Detailed,
+    'createdAt' | 'updatedAt' | 'birthdate'
+>;
 
 interface UserFormProps {
     user?: UserFormType
@@ -38,7 +48,7 @@ interface UserFormProps {
 export default function UserForm(props: UserFormProps) {
     const [form] = Form.useForm<User.Input>();
 
-    const [avatar, setAvatar] = useState('');
+    const [avatar, setAvatar] = useState(props.user?.avatarUrls.default || '');
     const [activeTab, setActiveTab] = useState<
         'personal' | 'bankAccount'
     >('personal');
@@ -150,6 +160,18 @@ export default function UserForm(props: UserFormProps) {
                                 handleAvatarUpload(file);
                                 return false;
                             }}
+
+                            fileList={[
+                                ...(
+                                    avatar
+                                        ? [{
+                                            name: 'Avatar',
+                                            uid: ''
+                                        }]
+                                        : []
+                                )
+                            ]}
+
                         >
                             <Avatar
                                 style={{ cursor: 'pointer' }}
