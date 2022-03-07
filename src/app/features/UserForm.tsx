@@ -42,7 +42,8 @@ type UserFormType = {
 >;
 
 interface UserFormProps {
-    user?: UserFormType
+    user?: UserFormType;
+    onUpdate?: (user: User.Input) => any;
 }
 
 export default function UserForm(props: UserFormProps) {
@@ -101,6 +102,10 @@ export default function UserForm(props: UserFormProps) {
                     ...user,
                     phone: user.phone.replace(/\D/g, ''),
                     taxpayerId: user.taxpayerId.replace(/\D/g, '')
+                }
+
+                if (props.user) {
+                    return props.onUpdate && props.onUpdate(userDTO);
                 }
 
                 try {

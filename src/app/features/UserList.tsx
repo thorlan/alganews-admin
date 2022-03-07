@@ -1,4 +1,4 @@
-import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions } from "antd";
+import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions, Tooltip } from "antd";
 import { format } from "date-fns";
 import { User } from "orlandini-sdk";
 import { useEffect } from "react";
@@ -6,6 +6,7 @@ import { EyeOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 
 import useUsers from "../../core/hooks/useUsers"
 import { ColumnProps } from "antd/lib/table";
+import { Link } from "react-router-dom";
 
 export default function UserList() {
 
@@ -167,10 +168,14 @@ export default function UserList() {
                     align: 'center',
                     responsive: ['sm'],
                     width: 100,
-                    render() {
+                    render(id: number) {
                         return <>
-                            <Button size='small' icon={<EyeOutlined />} />
-                            <Button size='small' icon={<EditOutlined />} />
+                            <Tooltip title={'Visualizar usuário'} placement={'left'}>
+                                <Button size='small' icon={<EyeOutlined />} />
+                            </Tooltip>
+                            <Tooltip title={'Editar usuário'} placement={'right'}>
+                                <Link to={`/usuarios/edicao/${id}`}><Button size='small' icon={<EditOutlined />} /></Link>
+                            </Tooltip>
                         </>
                     }
                 },
