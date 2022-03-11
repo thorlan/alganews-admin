@@ -1,10 +1,14 @@
 import { Col, Row, Space, Typography, Divider } from "antd";
+import usePageTitle from "../../core/hooks/usePageTitle";
 import CompanyMetrics from "../features/CompanyMetrics";
 import LatestPosts from "../features/LatestPosts";
 
 const { Title, Paragraph } = Typography
 
 function HomeView() {
+
+    usePageTitle('Home');
+
     return (
         <Space direction='vertical' size={'small'} style={{ maxWidth: '100%' }}>
             <Row>

@@ -3,10 +3,14 @@ import moment from 'moment';
 import { User, UserService } from 'orlandini-sdk';
 import { useCallback, useEffect } from "react";
 import { Redirect, useHistory, useParams } from 'react-router-dom';
+import usePageTitle from '../../core/hooks/usePageTitle';
 import useUser from "../../core/hooks/useUser";
+import NotFoundError from '../components/NotFoundError';
 import UserForm from "../features/UserForm";
 
 export default function UserEditView() {
+
+    usePageTitle('Edição de Usuário');
 
     const params = useParams<{ id: string }>()
     const { user, fetchUser, notFound } = useUser();
@@ -45,7 +49,11 @@ export default function UserEditView() {
 
     if (notFound) {
         return <Card>
-            Usuário não encontrado
+            <NotFoundError
+                title={'Usuário não encontrado'}
+                actionDestination={'/usuarios'}
+                actionTitle={'Voltar para lista de usuários'}
+            />
         </Card>
     }
 
