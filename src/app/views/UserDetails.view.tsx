@@ -30,6 +30,7 @@ import { Post } from 'orlandini-sdk';
 import moment from 'moment';
 import NotFoundError from '../components/NotFoundError';
 import usePageTitle from '../../core/hooks/usePageTitle';
+import formatPhone from '../../core/utils/formatPhone';
 
 export default function UserDetailsView() {
     usePageTitle('Detalhes do Usuário');
@@ -140,24 +141,28 @@ export default function UserDetailsView() {
                 </Space>
             </Col>
             <Divider />
-            <Col xs={24} lg={12}>
-                <Space
-                    direction='vertical'
-                    style={{ width: '100%' }}
-                >
-                    {user.skills?.map((skill) => (
-                        <div key={skill.name}>
-                            <Typography.Text>
-                                {skill.name}
-                            </Typography.Text>
-                            <Progress
-                                percent={skill.percentage}
-                                success={{ percent: 0 }}
-                            />
-                        </div>
-                    ))}
-                </Space>
-            </Col>
+            {
+                !!user.skills?.length && <>
+                    <Col xs={24} lg={12}>
+                        <Space
+                            direction='vertical'
+                            style={{ width: '100%' }}
+                        >
+                            {user.skills?.map((skill) => (
+                                <div key={skill.name}>
+                                    <Typography.Text>
+                                        {skill.name}
+                                    </Typography.Text>
+                                    <Progress
+                                        percent={skill.percentage}
+                                        success={{ percent: 0 }}
+                                    />
+                                </div>
+                            ))}
+                        </Space>
+                    </Col>
+                </>
+            }
             <Col xs={24} lg={12}>
                 <Descriptions column={1} bordered size={'small'}>
                     <Descriptions.Item label={'País'}>
@@ -170,104 +175,110 @@ export default function UserDetailsView() {
                         {user.location.city}
                     </Descriptions.Item>
                     <Descriptions.Item label={'Telefone'}>
-                        {user.phone}
+                        {formatPhone(user.phone)}
                     </Descriptions.Item>
                 </Descriptions>
             </Col>
-            <Col xs={24}>
-                <Table<Post.Summary>
-                    dataSource={posts?.content}
-                    rowKey={'id'}
-                    loading={loadingFetch}
-                    pagination={{
-                        onChange: page => setPage(page - 1),
-                        total: posts?.totalElements,
-                        pageSize: 10
-                    }}
-                    columns={[
-                        {
-                            responsive: ['xs'],
-                            title: 'Posts',
-                            render(element) {
-                                return (
-                                    <Descriptions column={1}>
-                                        <Descriptions.Item label={'Título'}>
-                                            {element.title}
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label={'Criação'}>
-                                            {moment(element.createdAt).format(
-                                                'DD/MM/YYYY'
-                                            )}
-                                        </Descriptions.Item>
-                                        <Descriptions.Item
-                                            label={'Atualização'}
-                                        >
-                                            {moment(element.updatedAt).format(
-                                                'DD/MM/YYYY'
-                                            )}
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label={'Publicado'}>
-                                            <Switch checked={element.published} />
-                                        </Descriptions.Item>
-                                    </Descriptions>
-                                );
-                            },
-                        },
-                        {
-                            dataIndex: 'title',
-                            title: 'Título',
-                            ellipsis: true,
-                            width: 300,
-                            responsive: ['sm'],
-                            render(title: string) {
-                                return (
-                                    <Tooltip title={title}>{title}</Tooltip>
-                                );
-                            },
-                        },
-                        {
-                            dataIndex: 'createdAt',
-                            title: 'Criação',
-                            width: 180,
-                            align: 'center',
-                            responsive: ['sm'],
-                            render: (item) =>
-                                moment(item).format('DD/MM/YYYY'),
-                        },
-                        {
-                            dataIndex: 'updatedAt',
-                            title: 'Última atualização',
-                            width: 200,
-                            align: 'center',
-                            responsive: ['sm'],
-                            render: (item) =>
-                                moment(item).format(
-                                    'DD/MM/YYYY \\à\\s hh:mm'
-                                ),
-                        },
-                        {
-                            dataIndex: 'published',
-                            title: 'Publicado',
-                            align: 'center',
-                            width: 120,
-                            responsive: ['sm'],
-                            render(published: boolean, post) {
-                                return (
-                                    <Switch
-                                        checked={published}
-                                        loading={loadingToggle}
-                                        onChange={() => {
-                                            togglePostStatus(post).then(() => {
-                                                fetchUserPosts(user.id);
-                                            });
-                                        }}
-                                    />
-                                );
-                            },
-                        },
-                    ]}
-                />
-            </Col>
+            {
+                user.role === 'EDITOR' &&
+                <>
+                    <Divider />
+                    <Col xs={24}>
+                        <Table<Post.Summary>
+                            dataSource={posts?.content}
+                            rowKey={'id'}
+                            loading={loadingFetch}
+                            pagination={{
+                                onChange: page => setPage(page - 1),
+                                total: posts?.totalElements,
+                                pageSize: 10
+                            }}
+                            columns={[
+                                {
+                                    responsive: ['xs'],
+                                    title: 'Posts',
+                                    render(element) {
+                                        return (
+                                            <Descriptions column={1}>
+                                                <Descriptions.Item label={'Título'}>
+                                                    {element.title}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label={'Criação'}>
+                                                    {moment(element.createdAt).format(
+                                                        'DD/MM/YYYY'
+                                                    )}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item
+                                                    label={'Atualização'}
+                                                >
+                                                    {moment(element.updatedAt).format(
+                                                        'DD/MM/YYYY'
+                                                    )}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label={'Publicado'}>
+                                                    <Switch checked={element.published} />
+                                                </Descriptions.Item>
+                                            </Descriptions>
+                                        );
+                                    },
+                                },
+                                {
+                                    dataIndex: 'title',
+                                    title: 'Título',
+                                    ellipsis: true,
+                                    width: 300,
+                                    responsive: ['sm'],
+                                    render(title: string) {
+                                        return (
+                                            <Tooltip title={title}>{title}</Tooltip>
+                                        );
+                                    },
+                                },
+                                {
+                                    dataIndex: 'createdAt',
+                                    title: 'Criação',
+                                    width: 180,
+                                    align: 'center',
+                                    responsive: ['sm'],
+                                    render: (item) =>
+                                        moment(item).format('DD/MM/YYYY'),
+                                },
+                                {
+                                    dataIndex: 'updatedAt',
+                                    title: 'Última atualização',
+                                    width: 200,
+                                    align: 'center',
+                                    responsive: ['sm'],
+                                    render: (item) =>
+                                        moment(item).format(
+                                            'DD/MM/YYYY \\à\\s hh:mm'
+                                        ),
+                                },
+                                {
+                                    dataIndex: 'published',
+                                    title: 'Publicado',
+                                    align: 'center',
+                                    width: 120,
+                                    responsive: ['sm'],
+                                    render(published: boolean, post) {
+                                        return (
+                                            <Switch
+                                                checked={published}
+                                                loading={loadingToggle}
+                                                onChange={() => {
+                                                    togglePostStatus(post).then(() => {
+                                                        fetchUserPosts(user.id);
+                                                    });
+                                                }}
+                                            />
+                                        );
+                                    },
+                                },
+                            ]}
+                        />
+                    </Col>
+                </>
+            }
         </Row>
     );
 }

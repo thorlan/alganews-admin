@@ -1,8 +1,8 @@
-import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions, Tooltip } from "antd";
+import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions, Tooltip, Row } from "antd";
 import { format } from "date-fns";
 import { User } from "orlandini-sdk";
 import { useEffect } from "react";
-import { EyeOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
+import { EyeOutlined, EditOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 
 import useUsers from "../../core/hooks/useUsers"
 import { ColumnProps } from "antd/lib/table";
@@ -57,6 +57,15 @@ export default function UserList() {
     })
 
     return <>
+        <Row justify='end'>
+            <Button
+                onClick={() => fetchUsers()}
+                loading={fetching}
+                icon={<ReloadOutlined />}
+            >
+                Atualizar
+            </Button>
+        </Row>
         <Table<User.Summary>
             loading={fetching}
             dataSource={users}
