@@ -1,30 +1,77 @@
-import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions, Tooltip, Row } from "antd";
-import { format } from "date-fns";
+import { Table, Tag, Button, Tooltip, Popconfirm, Row, DatePicker } from "antd";
 import { Payment } from "orlandini-sdk";
-import { useEffect } from "react";
-import { ReloadOutlined } from '@ant-design/icons';
-
+import { useEffect, useState } from "react";
+import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
+import confirm from 'antd/lib/modal/confirm';
+import { Key } from 'antd/lib/table/interface';
 import usePayments from "../../core/hooks/usePayments"
 import moment from "moment";
 
 export default function UserList() {
 
     const { payments, fetchPayments } = usePayments();
+    const [yearMonth, setYearMonth] = useState<string | undefined>()
+    const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
 
     useEffect(() => {
         fetchPayments({
+            scheduledToYearMonth: yearMonth,
             sort: ['scheduledTo', 'desc'],
             page: 0
         });
-    }, [fetchPayments])
-
-
+    }, [fetchPayments, yearMonth])
 
     return <>
+        <Row justify={'space-between'}>
+            <Popconfirm
+                title={
+                    selectedRowKeys.length === 1
+                        ? 'Deseja aprovar o pagamento selecionado?'
+                        : `Deseja aprovar os ${selectedRowKeys.length} pagamentos selecionados?`}
+                onConfirm={() => {
+                    confirm({
+                        title: 'Aprovar pagamento',
+                        cancelText: 'Cancelar',
+                        onOk() {
+                            console.log(
+                                'todo: implement payment batch approval'
+                            );
+                        },
+                        content:
+                            'Esta é uma ação irreversível. Ao um pagamento, ele não poderá ser removido!',
+                    });
+                }}
+            >
+                <Button type='primary' disabled={selectedRowKeys.length === 0}>
+                    Aprovar pagamentos
+                </Button>
+            </Popconfirm>
+
+            <DatePicker.MonthPicker
+
+                style={{ width: 240 }}
+                format={'MMM-YYYY'}
+                onChange={(date) => {
+                    setYearMonth(date ? date?.format('YYYY-MM') : undefined)
+                }}
+            />
+
+        </Row>
         <Table<Payment.Summary>
             dataSource={payments?.content}
-            pagination={false}
             rowKey={'id'}
+            rowSelection={{
+                selectedRowKeys: selectedRowKeys,
+                getCheckboxProps(payment) {
+                    return !payment.canBeApproved
+                        ? { disabled: true }
+                        : {}
+                },
+                onChange: setSelectedRowKeys,
+                // onChange(selectedKeys) {
+                //     setSelectedRowKeys(selectedKeys);
+                // }
+            }}
             columns={[
                 {
                     dataIndex: 'id',
@@ -79,20 +126,56 @@ export default function UserList() {
                     }
                 },
 
-
-                // {
-                //     dataIndex: 'createdAt',
-                //     title: 'Criação',
-                //     align: 'center',
-                //     responsive: ['sm'],
-                //     width: 120,
-                //     sorter(a, b) {
-                //         return new Date(a.createdAt) > new Date(b.createdAt) ? 1 : -1;
-                //     },
-                //     render(createdAt: string) {
-                //         return format(new Date(createdAt), 'dd/MM/yyyy')
-                //     }
-                // },
+                {
+                    dataIndex: 'id',
+                    title: 'Ações',
+                    render(id: number, payment) {
+                        return (
+                            <>
+                                <Tooltip
+                                    title={'Detalhar'}
+                                    placement='left'
+                                >
+                                    <Button
+                                        size='small'
+                                        icon={<EyeOutlined />}
+                                    />
+                                </Tooltip>
+                                <Popconfirm
+                                    title='Remover agendamento?'
+                                    onConfirm={() => {
+                                        confirm({
+                                            title: 'Remover agendamento',
+                                            cancelText: 'Cancelar',
+                                            onOk() {
+                                                console.log(
+                                                    'todo: implement payment deletion'
+                                                );
+                                            },
+                                            content:
+                                                'Esta é uma ação irreversível. Ao remover um agendamento, ele não poderá ser recuperado!',
+                                        });
+                                    }}
+                                >
+                                    <Tooltip
+                                        title={
+                                            payment.canBeDeleted
+                                                ? 'Remover'
+                                                : 'Pagamento já aprovado'
+                                        }
+                                        placement='right'
+                                    >
+                                        <Button
+                                            size='small'
+                                            disabled={!payment.canBeDeleted}
+                                            icon={<DeleteOutlined />}
+                                        />
+                                    </Tooltip>
+                                </Popconfirm>
+                            </>
+                        );
+                    },
+                },
 
 
             ]}
