@@ -1,17 +1,30 @@
-import { Table, Tag, Button, Tooltip, Popconfirm, Row, DatePicker } from "antd";
-import { Payment } from "orlandini-sdk";
-import { useEffect, useState } from "react";
+import {
+    Button,
+    DatePicker,
+    Descriptions,
+    Popconfirm,
+    Row,
+    Space,
+    Table,
+    Tag,
+    Tooltip,
+} from 'antd';
+import { Payment } from 'orlandini-sdk';
+import moment from 'moment';
+import { useEffect } from 'react';
 import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
-import confirm from 'antd/lib/modal/confirm';
+import usePayments from '../../core/hooks/usePayments';
+import { useState } from 'react';
 import { Key } from 'antd/lib/table/interface';
-import usePayments from "../../core/hooks/usePayments"
-import moment from "moment";
+import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
+import DoubleConfirm from '../components/DoubleConfirm';
 
 export default function UserList() {
 
     const { payments, fetchPayments } = usePayments();
     const [yearMonth, setYearMonth] = useState<string | undefined>()
     const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+    const { xs } = useBreakpoint();
 
     useEffect(() => {
         fetchPayments({
@@ -22,141 +35,189 @@ export default function UserList() {
     }, [fetchPayments, yearMonth])
 
     return <>
-        <Row justify={'space-between'}>
-            <Popconfirm
-                title={
-                    selectedRowKeys.length === 1
-                        ? 'Deseja aprovar o pagamento selecionado?'
-                        : `Deseja aprovar os ${selectedRowKeys.length} pagamentos selecionados?`}
-                onConfirm={() => {
-                    confirm({
-                        title: 'Aprovar pagamento',
-                        cancelText: 'Cancelar',
-                        onOk() {
-                            console.log(
-                                'todo: implement payment batch approval'
-                            );
-                        },
-                        content:
-                            'Esta é uma ação irreversível. Ao um pagamento, ele não poderá ser removido!',
-                    });
+        <Row justify={'space-between'} gutter={24}>
+            <Space
+                style={{
+                    width: '100%',
+                    ...(!xs && { justifyContent: 'space-between' }),
                 }}
+                direction={xs ? 'vertical' : 'horizontal'}
             >
-                <Button type='primary' disabled={selectedRowKeys.length === 0}>
-                    Aprovar pagamentos
-                </Button>
-            </Popconfirm>
+                <DoubleConfirm
+                    disabled={selectedRowKeys.length === 0}
+                    modalTitle='Aprovar agendamento'
+                    modalContent='Esta é uma ação irreversível. Ao aprovar um agendamento, ele não poderá ser removido!'
+                    popConfirmTitle={selectedRowKeys.length === 1
+                        ? 'Você deseja aprovar o agendamento selecionado?'
+                        : 'Você deseja aprovar os agendamentos selecionados?'}
+                    onConfirm={() => console.log('implementar')}
+                >
+                    <Button
+                        block={xs}
+                        type={'primary'}
+                        disabled={selectedRowKeys.length === 0}
+                    >
+                        Aprovar agendamentos
+                    </Button>
+                </DoubleConfirm>
 
-            <DatePicker.MonthPicker
-
-                style={{ width: 240 }}
-                format={'MMM-YYYY'}
-                onChange={(date) => {
-                    setYearMonth(date ? date?.format('YYYY-MM') : undefined)
-                }}
-            />
-
+                <DatePicker.MonthPicker
+                    style={{ width: xs ? '100%' : 240 }}
+                    format={'MMMM - YYYY'}
+                    placeholder={'Filtrar por mês'}
+                    onChange={(date) => {
+                        setYearMonth(date ? date?.format('YYYY-MM') : undefined);
+                    }}
+                />
+            </Space>
         </Row>
         <Table<Payment.Summary>
             dataSource={payments?.content}
-            rowKey={'id'}
+            rowKey='id'
             rowSelection={{
-                selectedRowKeys: selectedRowKeys,
-                getCheckboxProps(payment) {
-                    return !payment.canBeApproved
-                        ? { disabled: true }
-                        : {}
-                },
+                selectedRowKeys,
                 onChange: setSelectedRowKeys,
-                // onChange(selectedKeys) {
-                //     setSelectedRowKeys(selectedKeys);
-                // }
+                getCheckboxProps(payment) {
+                    return !payment.canBeApproved ? { disabled: true } : {};
+                },
             }}
             columns={[
                 {
-                    dataIndex: 'id',
-                    title: "#",
-                },
+                    title: 'Agendamentos',
+                    responsive: ['xs'],
+                    render(payment: Payment.Summary) {
+                        return (
+                            <Descriptions column={1} size={'small'}>
+                                <Descriptions.Item label={'Editor'}>
+                                    {payment.payee.name}
+                                </Descriptions.Item>
+                                <Descriptions.Item label={'Agendamento'}>
+                                    {moment(payment.scheduledTo).format('DD/MM/YYYY')}
+                                </Descriptions.Item>
+                                <Descriptions.Item label={'Período'}>
+                                    {(() => {
+                                        const starts = moment(
+                                            payment.accountingPeriod.startsOn
+                                        ).format('DD/MM/YYYY');
+                                        const ends = moment(
+                                            payment.accountingPeriod.endsOn
+                                        ).format('DD/MM/YYYY');
+                                        return `${starts} - ${ends}`;
+                                    })()}
+                                </Descriptions.Item>
+                                <Descriptions.Item label={'Status'}>
+                                    <Tag color={payment.approvedAt ? 'green' : 'warning'}>
+                                        {payment.approvedAt
+                                            ? `Aprovado em ${moment(payment.approvedAt).format(
+                                                'DD/MM/YYYY'
+                                            )}`
+                                            : 'Aguardando aprovação'}
+                                    </Tag>
+                                </Descriptions.Item>
+                                <Descriptions.Item label={'Ações'}>
+                                    <Tooltip title={'Detalhar'} placement={xs ? 'top' : 'left'}>
+                                        <Button size={'small'} icon={<EyeOutlined />} />
+                                    </Tooltip>
 
+                                    <DoubleConfirm
+                                        modalContent='Esta é uma ação irreversível. Ao remover um agendamento, ele não poderá ser recuperado!'
+                                        modalTitle={'Remover agendamento?'}
+                                        popConfirmTitle='Remover agendamento'
+                                        disabled={!payment.canBeDeleted}
+                                        onConfirm={() => console.log('implementar')}
+                                    >
+                                        <Tooltip
+                                            title={
+                                                payment.canBeDeleted
+                                                    ? 'Remover'
+                                                    : 'Pagamento já aprovado'
+                                            }
+                                            placement={xs ? 'bottom' : 'right'}
+                                        >
+                                            <Button
+                                                disabled={!payment.canBeDeleted}
+                                                icon={<DeleteOutlined />}
+                                                size={'small'}
+                                            />
+                                        </Tooltip>
+
+                                    </DoubleConfirm>
+                                </Descriptions.Item>
+                            </Descriptions>
+                        );
+                    },
+                },
                 {
                     dataIndex: 'payee',
                     title: 'Editor',
+                    responsive: ['sm'],
+                    ellipsis: true,
+                    width: 180,
                     render(payee: Payment.Summary['payee']) {
                         return payee.name;
-                    }
+                    },
                 },
-
                 {
                     dataIndex: 'scheduledTo',
                     title: 'Agendamento',
                     align: 'center',
+                    width: 140,
+                    responsive: ['sm'],
                     render(date: string) {
                         return moment(date).format('DD/MM/YYYY');
-                    }
+                    },
                 },
-
                 {
                     dataIndex: 'accountingPeriod',
                     title: 'Período',
                     align: 'center',
+                    responsive: ['sm'],
+                    width: 240,
                     render(period: Payment.Summary['accountingPeriod']) {
                         const starts = moment(period.startsOn).format('DD/MM/YYYY');
                         const ends = moment(period.endsOn).format('DD/MM/YYYY');
-                        return `${starts} - ${ends}`
-                    }
+                        return `${starts} - ${ends}`;
+                    },
                 },
-
                 {
                     dataIndex: 'approvedAt',
                     title: 'Status',
                     align: 'center',
+                    width: 180,
+                    responsive: ['sm'],
                     render(approvalDate: Payment.Summary['approvedAt']) {
-
-                        const formatedApprovalDate = moment(approvalDate).format('DD/MM/YYYY');
+                        const formattedApprovalDate =
+                            moment(approvalDate).format('DD/MM/YYYY');
 
                         return (
                             <Tag color={approvalDate ? 'green' : 'warning'}>
-                                {
-                                    approvalDate
-                                        ? `Aprovado em  ${formatedApprovalDate}`
-                                        : 'Aguardando aprovação'
-                                }
+                                {approvalDate
+                                    ? `Aprovado em ${formattedApprovalDate}`
+                                    : 'Aguardando aprovação'}
                             </Tag>
                         );
-                    }
+                    },
                 },
-
                 {
                     dataIndex: 'id',
                     title: 'Ações',
+                    responsive: ['sm'],
+                    width: 100,
                     render(id: number, payment) {
                         return (
                             <>
-                                <Tooltip
-                                    title={'Detalhar'}
-                                    placement='left'
-                                >
-                                    <Button
-                                        size='small'
-                                        icon={<EyeOutlined />}
-                                    />
+                                <Tooltip title={'Detalhar'} placement='left'>
+                                    <Button size='small' icon={<EyeOutlined />} />
                                 </Tooltip>
-                                <Popconfirm
-                                    title='Remover agendamento?'
-                                    onConfirm={() => {
-                                        confirm({
-                                            title: 'Remover agendamento',
-                                            cancelText: 'Cancelar',
-                                            onOk() {
-                                                console.log(
-                                                    'todo: implement payment deletion'
-                                                );
-                                            },
-                                            content:
-                                                'Esta é uma ação irreversível. Ao remover um agendamento, ele não poderá ser recuperado!',
-                                        });
-                                    }}
+
+                                <DoubleConfirm
+                                    modalContent='Esta é uma ação irreversível. Ao remover um agendamento, ele não poderá ser recuperado!'
+                                    modalTitle='Remover agendamento?'
+                                    popConfirmTitle='Remover agendamento'
+                                    disabled={!payment.canBeDeleted}
+                                    onConfirm={() => console.log('implementar')}
                                 >
+
                                     <Tooltip
                                         title={
                                             payment.canBeDeleted
@@ -171,13 +232,11 @@ export default function UserList() {
                                             icon={<DeleteOutlined />}
                                         />
                                     </Tooltip>
-                                </Popconfirm>
+                                </DoubleConfirm>
                             </>
                         );
                     },
                 },
-
-
             ]}
         />
     </>
