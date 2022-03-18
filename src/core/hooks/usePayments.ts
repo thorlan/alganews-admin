@@ -5,15 +5,20 @@ import {
 import { useCallback, useState } from 'react';
 
 export default function usePayments() {
-    const [payments, setPayments] =
-        useState<Payment.Paginated>();
+    const [fetchingPayments, setFetchPayments] = useState(false);
+    const [payments, setPayments] = useState<Payment.Paginated>();
 
     const fetchPayments = useCallback(
         async (query: Payment.Query) => {
-            const payments = await PayrollService.getAllPayments(
-                query
-            );
-            setPayments(payments);
+            setFetchPayments(true);
+            try {
+                const payments = await PayrollService.getAllPayments(
+                    query
+                );
+                setPayments(payments);
+            } finally {
+                setFetchPayments(false);
+            }
         },
         []
     );
@@ -21,5 +26,6 @@ export default function usePayments() {
     return {
         payments,
         fetchPayments,
+        fetchingPayments
     };
 }

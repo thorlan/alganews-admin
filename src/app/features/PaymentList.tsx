@@ -2,7 +2,6 @@ import {
     Button,
     DatePicker,
     Descriptions,
-    Popconfirm,
     Row,
     Space,
     Table,
@@ -15,24 +14,29 @@ import { useEffect } from 'react';
 import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import usePayments from '../../core/hooks/usePayments';
 import { useState } from 'react';
-import { Key } from 'antd/lib/table/interface';
+import { Key, SorterResult } from 'antd/lib/table/interface';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import DoubleConfirm from '../components/DoubleConfirm';
+import { Link } from 'react-router-dom';
 
 export default function UserList() {
 
-    const { payments, fetchPayments } = usePayments();
+    const { payments, fetchPayments, fetchingPayments } = usePayments();
     const [yearMonth, setYearMonth] = useState<string | undefined>()
+    const [page, setPage] = useState(1);
+    const [sortingOrder, setSortingOrder] = useState<'asc' | 'desc' | undefined>();
     const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
     const { xs } = useBreakpoint();
+    const pageSize = 7;
 
     useEffect(() => {
         fetchPayments({
             scheduledToYearMonth: yearMonth,
-            sort: ['scheduledTo', 'desc'],
-            page: 0
+            sort: ['scheduledTo', sortingOrder || 'desc'],
+            page: page - 1,
+            size: pageSize
         });
-    }, [fetchPayments, yearMonth])
+    }, [fetchPayments, yearMonth, page, sortingOrder])
 
     return <>
         <Row justify={'space-between'} gutter={24}>
@@ -74,6 +78,20 @@ export default function UserList() {
         <Table<Payment.Summary>
             dataSource={payments?.content}
             rowKey='id'
+            loading={fetchingPayments}
+            onChange={(p, f, sorter) => {
+                //sorter.field,
+                const { order } = sorter as SorterResult<Payment.Summary>
+                order === 'ascend'
+                    ? setSortingOrder('asc')
+                    : setSortingOrder('desc')
+            }}
+            pagination={{
+                current: page,
+                onChange: setPage,
+                total: payments?.totalElements,
+                pageSize: pageSize
+            }}
             rowSelection={{
                 selectedRowKeys,
                 onChange: setSelectedRowKeys,
@@ -154,7 +172,7 @@ export default function UserList() {
                     ellipsis: true,
                     width: 180,
                     render(payee: Payment.Summary['payee']) {
-                        return payee.name;
+                        return <Link to={`/usuarios/${payee.id}`}>{payee.name}</Link>;
                     },
                 },
                 {
@@ -162,6 +180,9 @@ export default function UserList() {
                     title: 'Agendamento',
                     align: 'center',
                     width: 140,
+                    sorter(a, b) {
+                        return 0;
+                    },
                     responsive: ['sm'],
                     render(date: string) {
                         return moment(date).format('DD/MM/YYYY');
