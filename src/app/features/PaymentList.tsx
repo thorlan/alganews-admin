@@ -133,9 +133,11 @@ export default function UserList() {
                                     </Tag>
                                 </Descriptions.Item>
                                 <Descriptions.Item label={'Ações'}>
-                                    <Tooltip title={'Detalhar'} placement={xs ? 'top' : 'left'}>
-                                        <Button size={'small'} icon={<EyeOutlined />} />
-                                    </Tooltip>
+                                    <Link to={`/pagamentos/${payment.id}`}>
+                                        <Tooltip title={'Detalhar'} placement={xs ? 'top' : 'left'}>
+                                            <Button size={'small'} icon={<EyeOutlined />} />
+                                        </Tooltip>
+                                    </Link>
 
                                     <DoubleConfirm
                                         modalContent='Esta é uma ação irreversível. Ao remover um agendamento, ele não poderá ser recuperado!'
@@ -227,9 +229,11 @@ export default function UserList() {
                     render(id: number, payment) {
                         return (
                             <>
-                                <Tooltip title={'Detalhar'} placement='left'>
-                                    <Button size='small' icon={<EyeOutlined />} />
-                                </Tooltip>
+                                <Link to={`/pagamentos/${id}`}>
+                                    <Tooltip title={'Detalhar'} placement='left'>
+                                        <Button size='small' icon={<EyeOutlined />} />
+                                    </Tooltip>
+                                </Link>
 
                                 <DoubleConfirm
                                     modalContent='Esta é uma ação irreversível. Ao remover um agendamento, ele não poderá ser recuperado!'

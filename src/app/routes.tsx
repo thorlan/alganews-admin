@@ -12,6 +12,7 @@ import CustomError from 'orlandini-sdk/dist/CustomError';
 import { message, notification } from 'antd';
 import UserEditView from './views/UserEdit.view';
 import UserDetailsView from './views/UserDetails.view';
+import PaymentDetailsView from './views/PaymentDetails.view';
 
 export default function Routes() {
 
@@ -72,6 +73,11 @@ export default function Routes() {
                 path={'/pagamentos'}
                 exact
                 component={PaymentListView}
+            />
+            <Route
+                path={'/pagamentos/:id'}
+                exact
+                component={PaymentDetailsView}
             />
             <Route
                 path={'/pagamentos/cadastro'}
