@@ -1,6 +1,8 @@
-import { Descriptions, Divider, Space, Tag, Typography } from "antd";
+import { Descriptions, Divider, Skeleton, Space, Tag, Typography } from "antd";
+import useBreakpoint from "antd/lib/grid/hooks/useBreakpoint";
 
 interface PaymentHeaderProps {
+    loading?: boolean,
     editorId?: number,
     editorName?: string,
     periodStart?: string,
@@ -10,6 +12,13 @@ interface PaymentHeaderProps {
 }
 
 export default function PaymentHeader(props: PaymentHeaderProps) {
+
+    const { xs } = useBreakpoint();
+
+    if (props.loading) {
+        return <Skeleton />
+    }
+
     return (
         <>
             <Typography.Title>
@@ -19,10 +28,14 @@ export default function PaymentHeader(props: PaymentHeaderProps) {
                 A base do pagamento é calculada pela quantidade de palavras escritas
             </Typography.Text>
             <Divider />
-            <Descriptions column={2}>
+            <Descriptions column={xs ? 1 : 2} size={xs ? 'small' : 'default'}>
                 <Descriptions.Item label={"Editor"}>{props.editorName}</Descriptions.Item>
                 <Descriptions.Item label={"Período"}>
-                    <Space size={8}><Tag style={{ margin: 0 }}>{props.periodStart}</Tag> até <Tag>{props.periodEnd}</Tag></Space>
+                    <Space size={8}>
+                        <Tag style={{ margin: 0 }}>{props.periodStart}</Tag>
+                        <span>{xs ? '-' : 'até'}</span>
+                        <Tag>{props.periodEnd}</Tag>
+                    </Space>
                 </Descriptions.Item>
                 <Descriptions.Item label={"Ganhos por posts"}>
                     <Tag style={{ margin: 0 }}>{props.postsEarnings?.toLocaleString('pt-br', {
