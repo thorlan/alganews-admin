@@ -6,6 +6,7 @@ import { useState } from 'react';
 export default function usePayment() {
     const [posts, setPosts] = useState<Post.WithEarnings[]>([]);
     const [payment, setPayment] = useState<Payment.Detailed>();
+    const [approvingPayment, setApprovingPayment] = useState(false);
 
     const [fetchingPosts, setFetchingPosts] = useState(false);
     const [fetchingPayment, setFetchingPayment] = useState(false);
@@ -43,11 +44,23 @@ export default function usePayment() {
         }
     }, []);
 
+    const approvePayment = useCallback(async (paymentId: number) => {
+        try {
+            setApprovingPayment(true);
+            await PaymentService.approvePayment(paymentId);
+        } finally {
+            setApprovingPayment(false);
+        }
+    }, []);
+
+
     return {
         fetchPayment,
         fetchPosts,
+        approvePayment,
         fetchingPayment,
         fetchingPosts,
+        approvingPayment,
         paymentNotFound,
         postsNotFound,
         posts,

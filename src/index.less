@@ -57,11 +57,10 @@
   .ant-layout-sider {
     position: fixed !important;
     overflow: inherit !important;
-    box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.7);
+    box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.07);
     z-index: 10;
     height: 100%;
   }
-
   .ant-layout-sider .ant-layout-sider-children {
     overflow: hidden auto;
   }
@@ -70,5 +69,23 @@
 @media screen and (max-width: 1190px) {
   .ant-table-content {
     overflow: auto;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none;
+  }
+
+  * {
+    color: #000 !important;
+    border-color: #ccc !important;
+    background-color: #fff !important;
+  }
+  .ant-layout {
+    margin: 0 !important;
+  }
+  @page {
+    size: landscape;
   }
 }
