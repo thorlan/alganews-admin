@@ -6,10 +6,12 @@ import { useState } from 'react';
 export default function usePayment() {
     const [posts, setPosts] = useState<Post.WithEarnings[]>([]);
     const [payment, setPayment] = useState<Payment.Detailed>();
-    const [approvingPayment, setApprovingPayment] = useState(false);
+    const [paymentPreview, setPaymentPreview] = useState<Payment.Preview>();
 
     const [fetchingPosts, setFetchingPosts] = useState(false);
     const [fetchingPayment, setFetchingPayment] = useState(false);
+    const [approvingPayment, setApprovingPayment] = useState(false);
+    const [fetchingPaymentPreview, setFetchingPaymentPreview] = useState(false);
 
     const [paymentNotFound, setPaymentNotFound] = useState(false);
     const [postsNotFound, setPostsNotFound] = useState(false);
@@ -22,25 +24,11 @@ export default function usePayment() {
         } catch (error) {
             if (error instanceof ResourceNotFoundError) {
                 setPaymentNotFound(true);
+                return;
             }
             throw error;
         } finally {
             setFetchingPayment(false);
-        }
-    }, []);
-
-    const fetchPosts = useCallback(async (paymentId: number) => {
-        try {
-            setFetchingPosts(true);
-            const posts = await PaymentService.getExistingPaymentPosts(paymentId);
-            setPosts(posts);
-        } catch (error) {
-            if (error instanceof ResourceNotFoundError) {
-                setPostsNotFound(true);
-            }
-            throw error;
-        } finally {
-            setFetchingPosts(false);
         }
     }, []);
 
@@ -53,17 +41,53 @@ export default function usePayment() {
         }
     }, []);
 
+    const fetchPosts = useCallback(async (paymentId: number) => {
+        try {
+            setFetchingPosts(true);
+            const posts = await PaymentService.getExistingPaymentPosts(paymentId);
+            setPosts(posts);
+        } catch (error) {
+            if (error instanceof ResourceNotFoundError) {
+                setPostsNotFound(true);
+                return;
+            }
+            throw error;
+        } finally {
+            setFetchingPosts(false);
+        }
+    }, []);
+
+    const fetchPaymentPreview = useCallback(
+        async (paymentPreview: Payment.PreviewInput) => {
+            try {
+                setFetchingPaymentPreview(true);
+                const preview = await PaymentService.getPaymentPreview(paymentPreview);
+                setPaymentPreview(preview);
+            } finally {
+                setFetchingPaymentPreview(false);
+            }
+        },
+        []
+    );
+
+    const clearPaymentPreview = useCallback(() => {
+        setPaymentPreview(undefined);
+    }, []);
 
     return {
         fetchPayment,
         fetchPosts,
         approvePayment,
+        fetchPaymentPreview,
         fetchingPayment,
         fetchingPosts,
         approvingPayment,
+        fetchingPaymentPreview,
         paymentNotFound,
         postsNotFound,
         posts,
         payment,
+        paymentPreview,
+        clearPaymentPreview,
     };
 }
