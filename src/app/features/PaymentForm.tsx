@@ -7,6 +7,7 @@ import {
     Divider,
     Form,
     Input,
+    notification,
     Row,
     Select,
     Skeleton,
@@ -18,7 +19,7 @@ import { useForm } from 'antd/lib/form/Form';
 import { Payment } from 'orlandini-sdk';
 import moment, { Moment } from 'moment';
 import { FieldData } from 'rc-field-form/lib/interface';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 //@ts-ignore
 import debounce from 'lodash.debounce';
 import { InfoCircleFilled } from '@ant-design/icons';
@@ -30,22 +31,27 @@ import { useState } from 'react';
 import AskForPaymentPreview from './AskForPaymentPreview';
 import CustomError from 'orlandini-sdk/dist/CustomError';
 import { BusinessError } from 'orlandini-sdk/dist/errors';
+import { useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 
 export default function PaymentForm() {
     const [form] = useForm<Payment.Input>();
     const { editors, fetchUsers, fetching } = useUsers();
+    const history = useHistory();
     const {
         fetchingPaymentPreview,
         clearPaymentPreview,
         paymentPreview,
         fetchPaymentPreview,
+        schedulePayment,
+        schedulingPayment,
     } = usePayment();
     const [scheduledTo, setScheduledTo] = useState('');
     const [paymentPreviewError, setPaymentPreviewError] = useState<CustomError>();
 
     useEffect(() => {
         fetchUsers();
-    }, [fetchUsers])
+    }, [fetchUsers]);
 
     const updateScheduleDate = useCallback(() => {
         const { scheduledTo } = form.getFieldsValue();
@@ -58,24 +64,26 @@ export default function PaymentForm() {
 
     const getPaymentPreview = useCallback(async () => {
         const { accountingPeriod, bonuses, payee } = form.getFieldsValue();
-        if (payee.id && accountingPeriod.endsOn && accountingPeriod.startsOn) {
-            try {
-                await fetchPaymentPreview({
-                    payee,
-                    accountingPeriod,
-                    bonuses: bonuses || [],
-                });
-                clearPaymentPreviewError();
-            } catch (err) {
-                clearPaymentPreview();
-                if (err instanceof BusinessError) {
-                    setPaymentPreviewError(err);
+        if (payee && accountingPeriod) {
+            if (payee.id && accountingPeriod.endsOn && accountingPeriod.startsOn) {
+                try {
+                    await fetchPaymentPreview({
+                        payee,
+                        accountingPeriod,
+                        bonuses: bonuses || [],
+                    });
+                    clearPaymentPreviewError();
+                } catch (err) {
+                    clearPaymentPreview();
+                    if (err instanceof BusinessError) {
+                        setPaymentPreviewError(err);
+                    }
+                    throw err;
                 }
-                throw err;
+            } else {
+                clearPaymentPreview();
+                clearPaymentPreviewError();
             }
-        } else {
-            clearPaymentPreview();
-            clearPaymentPreviewError();
         }
     }, [
         form,
@@ -105,18 +113,45 @@ export default function PaymentForm() {
 
     const debouncedHandleFormChange = debounce(handleFormChange, 1000);
 
+    const handleFormSubmit = useCallback(
+        async (form: Payment.Input) => {
+            const paymentDto: Payment.Input = {
+                accountingPeriod: form.accountingPeriod,
+                payee: form.payee,
+                bonuses: form.bonuses || [],
+                scheduledTo: moment(form.scheduledTo).format('YYYY-MM-DD'),
+            };
+
+            await schedulePayment(paymentDto);
+
+            notification.success({
+                message: 'Pagamento agendado com sucesso',
+            });
+
+            history.push('/pagamentos');
+        },
+        [schedulePayment, history]
+    );
+
     return (
         <Form<Payment.Input>
             form={form}
             layout={'vertical'}
             onFieldsChange={debouncedHandleFormChange}
-            onFinish={(form) => {
-                console.log(form);
-            }}
+            onFinish={handleFormSubmit}
         >
             <Row gutter={24}>
                 <Col xs={24} lg={8}>
-                    <Form.Item label={'Editor'} name={['payee', 'id']}>
+                    <Form.Item
+                        rules={[
+                            {
+                                required: true,
+                                message: 'O campo é obrigatório',
+                            },
+                        ]}
+                        label={'Editor'}
+                        name={['payee', 'id']}
+                    >
                         <Select
                             showSearch
                             loading={fetching}
@@ -152,7 +187,16 @@ export default function PaymentForm() {
                     <Form.Item hidden name={['accountingPeriod', 'endsOn']}>
                         <Input hidden />
                     </Form.Item>
-                    <Form.Item label={'Período'} name={'_accountingPeriod'}>
+                    <Form.Item
+                        rules={[
+                            {
+                                required: true,
+                                message: 'O campo é obrigatório',
+                            },
+                        ]}
+                        label={'Período'}
+                        name={'_accountingPeriod'}
+                    >
                         <DatePicker.RangePicker
                             style={{ width: '100%' }}
                             format={'DD/MM/YYYY'}
@@ -178,7 +222,16 @@ export default function PaymentForm() {
                     </Form.Item>
                 </Col>
                 <Col xs={24} lg={8}>
-                    <Form.Item label={'Agendamento'} name={'scheduledTo'}>
+                    <Form.Item
+                        label={'Agendamento'}
+                        name={'scheduledTo'}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'O campo é obrigatório',
+                            },
+                        ]}
+                    >
                         <DatePicker
                             disabledDate={(date) => {
                                 return (
@@ -193,97 +246,95 @@ export default function PaymentForm() {
                 </Col>
                 <Divider />
                 <Col xs={24} lg={12}>
-                    {
-                        fetchingPaymentPreview
-                            ?
-                            <>
-                                <Skeleton />
-                                <Skeleton title={false} />
-                            </>
-                            : !paymentPreview ? (
-                                <AskForPaymentPreview error={paymentPreviewError} />
-                            ) : (
-                                <Tabs defaultActiveKey={'payment'}>
-                                    <Tabs.TabPane tab={'Demonstrativo'} key={'payment'}>
-                                        <Descriptions
-                                            labelStyle={{ width: 160 }}
-                                            bordered
-                                            size={'small'}
-                                            column={1}
-                                        >
-                                            <Descriptions.Item label={'Editor'}>
-                                                {paymentPreview?.payee.name}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Período'}>
+                    {fetchingPaymentPreview ? (
+                        <>
+                            <Skeleton />
+                            <Skeleton title={false} />
+                        </>
+                    ) : !paymentPreview ? (
+                        <AskForPaymentPreview error={paymentPreviewError} />
+                    ) : (
+                        <Tabs defaultActiveKey={'payment'}>
+                            <Tabs.TabPane tab={'Demonstrativo'} key={'payment'}>
+                                <Descriptions
+                                    labelStyle={{ width: 160 }}
+                                    bordered
+                                    size={'small'}
+                                    column={1}
+                                >
+                                    <Descriptions.Item label={'Editor'}>
+                                        {paymentPreview?.payee.name}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Período'}>
+                                        <Space>
+                                            {moment(paymentPreview?.accountingPeriod.startsOn).format(
+                                                'DD/MM/YYYY'
+                                            )}
+                                            <span>à</span>
+                                            {moment(paymentPreview?.accountingPeriod.endsOn).format(
+                                                'DD/MM/YYYY'
+                                            )}
+                                        </Space>
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Agendamento'}>
+                                        {scheduledTo && moment(scheduledTo).format('DD/MM/YYYY')}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Palavras'}>
+                                        {paymentPreview?.earnings.words}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Ganhos'}>
+                                        {transformIntoBrl(paymentPreview?.grandTotalAmount)}
+                                    </Descriptions.Item>
+                                    {paymentPreview?.bonuses.map((bonus, index) => (
+                                        <Descriptions.Item
+                                            key={index}
+                                            label={
                                                 <Space>
-                                                    {moment(paymentPreview?.accountingPeriod.startsOn).format(
-                                                        'DD/MM/YYYY'
-                                                    )}
-                                                    <span>à</span>
-                                                    {moment(paymentPreview?.accountingPeriod.endsOn).format(
-                                                        'DD/MM/YYYY'
-                                                    )}
+                                                    {`Bônus ${index + 1}`}
+                                                    <Tooltip title={bonus.title}>
+                                                        <InfoCircleFilled
+                                                            style={{ color: '#09f', fontSize: 18 }}
+                                                        />
+                                                    </Tooltip>
                                                 </Space>
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Agendamento'}>
-                                                {scheduledTo && moment(scheduledTo).format('DD/MM/YYYY')}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Palavras'}>
-                                                {paymentPreview?.earnings.words}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Ganhos'}>
-                                                {transformIntoBrl(paymentPreview?.grandTotalAmount)}
-                                            </Descriptions.Item>
-                                            {paymentPreview?.bonuses.map((bonus, index) => (
-                                                <Descriptions.Item
-                                                    key={index}
-                                                    label={
-                                                        <Space>
-                                                            {`Bônus ${index + 1}`}
-                                                            <Tooltip title={bonus.title}>
-                                                                <InfoCircleFilled
-                                                                    style={{ color: '#09f', fontSize: 18 }}
-                                                                />
-                                                            </Tooltip>
-                                                        </Space>
-                                                    }
-                                                >
-                                                    {transformIntoBrl(bonus.amount)}
-                                                </Descriptions.Item>
-                                            ))}
-                                            <Descriptions.Item label={'Ganhos de posts'}>
-                                                {transformIntoBrl(paymentPreview?.earnings.totalAmount)}
-                                            </Descriptions.Item>
-                                        </Descriptions>
-                                    </Tabs.TabPane>
-                                    <Tabs.TabPane tab={'Dados bancários'} key={'bankAccount'}>
-                                        <Descriptions
-                                            bordered
-                                            labelStyle={{ width: 160 }}
-                                            size={'small'}
-                                            column={1}
+                                            }
                                         >
-                                            <Descriptions.Item label={'Código do Banco'}>
-                                                {paymentPreview?.bankAccount.bankCode}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Número da conta'}>
-                                                {paymentPreview?.bankAccount.number}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Dígito da conta'}>
-                                                {paymentPreview?.bankAccount.digit}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Agência'}>
-                                                {paymentPreview?.bankAccount.agency}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label={'Tipo de conta'}>
-                                                {paymentPreview?.bankAccount.type === 'CHECKING'
-                                                    ? 'Conta corrente'
-                                                    : 'Conta poupança'}
-                                            </Descriptions.Item>
-                                        </Descriptions>
-                                    </Tabs.TabPane>
-                                </Tabs>
-                            )}
+                                            {transformIntoBrl(bonus.amount)}
+                                        </Descriptions.Item>
+                                    ))}
+                                    <Descriptions.Item label={'Ganhos de posts'}>
+                                        {transformIntoBrl(paymentPreview?.earnings.totalAmount)}
+                                    </Descriptions.Item>
+                                </Descriptions>
+                            </Tabs.TabPane>
+                            <Tabs.TabPane tab={'Dados bancários'} key={'bankAccount'}>
+                                <Descriptions
+                                    bordered
+                                    labelStyle={{ width: 160 }}
+                                    size={'small'}
+                                    column={1}
+                                >
+                                    <Descriptions.Item label={'Código do Banco'}>
+                                        {paymentPreview?.bankAccount.bankCode}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Número da conta'}>
+                                        {paymentPreview?.bankAccount.number}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Dígito da conta'}>
+                                        {paymentPreview?.bankAccount.digit}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Agência'}>
+                                        {paymentPreview?.bankAccount.agency}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Tipo de conta'}>
+                                        {paymentPreview?.bankAccount.type === 'CHECKING'
+                                            ? 'Conta corrente'
+                                            : 'Conta poupança'}
+                                    </Descriptions.Item>
+                                </Descriptions>
+                            </Tabs.TabPane>
+                        </Tabs>
+                    )}
                 </Col>
                 <Col xs={24} lg={12}>
                     <Form.List name={'bonuses'}>
@@ -298,6 +349,12 @@ export default function PaymentForm() {
                                                         {...field}
                                                         name={[field.name, 'title']}
                                                         label={'Descrição'}
+                                                        rules={[
+                                                            {
+                                                                required: true,
+                                                                message: 'O campo é obrigatório',
+                                                            },
+                                                        ]}
                                                     >
                                                         <Input placeholder={'E.g.: 1 milhão de views'} />
                                                     </Form.Item>
@@ -308,6 +365,12 @@ export default function PaymentForm() {
                                                         {...field}
                                                         name={[field.name, 'amount']}
                                                         label={'Valor'}
+                                                        rules={[
+                                                            {
+                                                                required: true,
+                                                                message: 'O campo é obrigatório',
+                                                            },
+                                                        ]}
                                                     >
                                                         <CurrencyInput
                                                             onChange={(a, amount) => {
@@ -350,7 +413,11 @@ export default function PaymentForm() {
                     </Form.List>
                 </Col>
             </Row>
-            <Button htmlType='submit'>enviar</Button>
+            <Row justify='end'>
+                <Button type={'primary'} htmlType='submit' loading={schedulingPayment}>
+                    Cadastrar agendamento
+                </Button>
+            </Row>
         </Form>
     );
 }

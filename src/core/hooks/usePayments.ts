@@ -1,31 +1,52 @@
-import {
-    Payment,
-    PayrollService,
-} from 'orlandini-sdk';
-import { useCallback, useState } from 'react';
+import { Key } from 'antd/lib/table/interface';
+import { Payment } from 'orlandini-sdk';
+import { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import * as PaymentActions from '../store/Payment.slice';
 
 export default function usePayments() {
-    const [fetchingPayments, setFetchPayments] = useState(false);
-    const [payments, setPayments] = useState<Payment.Paginated>();
+    const dispatch = useDispatch();
+
+    const fetching = useSelector((s: RootState) => s.payment.fetching);
+    const payments = useSelector((s: RootState) => s.payment.paginated);
+    const query = useSelector((s: RootState) => s.payment.query);
+    const selected = useSelector((s: RootState) => s.payment.selected);
+
+    const approvePaymentsInBatch = useCallback(
+        (ids: number[]) => dispatch(PaymentActions.approvePaymentsInBatch(ids)),
+        [dispatch]
+    );
+
+    const removePayment = useCallback(
+        (id: number) => dispatch(PaymentActions.deleteExistingPayment(id)),
+        [dispatch]
+    );
 
     const fetchPayments = useCallback(
-        async (query: Payment.Query) => {
-            setFetchPayments(true);
-            try {
-                const payments = await PayrollService.getAllPayments(
-                    query
-                );
-                setPayments(payments);
-            } finally {
-                setFetchPayments(false);
-            }
-        },
-        []
+        () => dispatch(PaymentActions.getAllPayments()),
+        [dispatch]
+    );
+
+    const setQuery = useCallback(
+        (query: Payment.Query) => dispatch(PaymentActions.setQuery(query)),
+        [dispatch]
+    );
+
+    const setSelected = useCallback(
+        (keys: Key[]) => dispatch(PaymentActions.storeSelectedKeys(keys)),
+        [dispatch]
     );
 
     return {
         payments,
+        fetching,
+        query,
+        selected,
         fetchPayments,
-        fetchingPayments
+        approvePaymentsInBatch,
+        setQuery,
+        setSelected,
+        removePayment
     };
 }
