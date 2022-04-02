@@ -20,7 +20,6 @@ import { Payment } from 'orlandini-sdk';
 import moment, { Moment } from 'moment';
 import { FieldData } from 'rc-field-form/lib/interface';
 import { useCallback } from 'react';
-//@ts-ignore
 import debounce from 'lodash.debounce';
 import { InfoCircleFilled } from '@ant-design/icons';
 import useUsers from '../../core/hooks/useUsers';
