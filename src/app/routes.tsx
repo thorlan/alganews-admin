@@ -2,6 +2,7 @@ import { Route, Switch } from 'react-router-dom';
 
 import HomeView from './views/Home.view';
 import UserCreateView from './views/UserCreate.view';
+import UserEditView from './views/UserEdit.view';
 import UserListView from './views/UserList.view';
 import PaymentListView from './views/PaymentList.view';
 import PaymentCreateView from './views/PaymentCreate.view';
@@ -10,14 +11,11 @@ import CashFlowExpensesView from './views/CashFlowExpenses.view';
 import { useEffect } from 'react';
 import CustomError from 'orlandini-sdk/dist/CustomError';
 import { message, notification } from 'antd';
-import UserEditView from './views/UserEdit.view';
 import UserDetailsView from './views/UserDetails.view';
 import PaymentDetailsView from './views/PaymentDetails.view';
 
 export default function Routes() {
-
     useEffect(() => {
-
         window.onunhandledrejection = ({ reason }) => {
             if (reason instanceof CustomError) {
                 if (reason.data?.objects) {
@@ -35,55 +33,29 @@ export default function Routes() {
                 }
             } else {
                 notification.error({
-                    message: 'Houve um erro',
+                    message: reason?.message || 'Houve um erro',
                 });
             }
         };
 
         return () => {
             window.onunhandledrejection = null;
-        }
-
+        };
     }, []);
-
     return (
         <Switch>
             <Route path={'/'} exact component={HomeView} />
-            <Route
-                path={'/usuarios/cadastro'}
-                exact
-                component={UserCreateView}
-            />
-            <Route
-                path={'/usuarios/edicao/:id'}
-                exact
-                component={UserEditView}
-            />
-            <Route
-                path={'/usuarios/:id'}
-                exact
-                component={UserDetailsView}
-            />
-            <Route
-                path={'/usuarios'}
-                exact
-                component={UserListView}
-            />
-            <Route
-                path={'/pagamentos'}
-                exact
-                component={PaymentListView}
-            />
+            <Route path={'/usuarios/cadastro'} exact component={UserCreateView} />
+            <Route path={'/usuarios/edicao/:id'} exact component={UserEditView} />
+            <Route path={'/usuarios/:id'} exact component={UserDetailsView} />
+            <Route path={'/usuarios'} exact component={UserListView} />
+            <Route path={'/pagamentos'} exact component={PaymentListView} />
             <Route
                 path={'/pagamentos/cadastro'}
                 exact
                 component={PaymentCreateView}
             />
-            <Route
-                path={'/pagamentos/:id'}
-                exact
-                component={PaymentDetailsView}
-            />
+            <Route path={'/pagamentos/:id'} exact component={PaymentDetailsView} />
             <Route
                 path={'/fluxo-de-caixa/despesas'}
                 exact

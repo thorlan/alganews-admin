@@ -6,9 +6,18 @@ import { useEffect } from 'react';
 import useCashFlow from '../../core/hooks/useCashFlow';
 import transformIntoBrl from '../../core/utils/transformIntoBrl';
 
-export default function EntriesList() {
-    const { entries, fetchingEntries, fetchEntries, setQuery, query } =
-        useCashFlow('EXPENSE');
+interface EntriesListProps { }
+
+export default function EntriesList(props: EntriesListProps) {
+    const {
+        entries,
+        fetching,
+        fetchEntries,
+        setQuery,
+        query,
+        selected,
+        setSelected,
+    } = useCashFlow('EXPENSE');
 
     useEffect(() => {
         fetchEntries();
@@ -17,7 +26,15 @@ export default function EntriesList() {
     return (
         <Table<CashFlow.EntrySummary>
             dataSource={entries}
-            loading={fetchingEntries}
+            loading={fetching}
+            rowKey={'id'}
+            rowSelection={{
+                selectedRowKeys: selected,
+                onChange: setSelected,
+                getCheckboxProps(record) {
+                    return !record.canBeDeleted ? { disabled: true } : {};
+                },
+            }}
             columns={[
                 {
                     dataIndex: 'description',
