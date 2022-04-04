@@ -6,6 +6,8 @@ import * as CategoryActions from '../store/EntriesCategory.slice';
 
 export default function useEntriesCategories() {
     const dispatch = useDispatch<AppDispatch>();
+
+    const fetching = useSelector((s: RootState) => s.cashFlow.category.fetching);
     const expenses = useSelector((s: RootState) => s.cashFlow.category.expenses);
     const revenues = useSelector((s: RootState) => s.cashFlow.category.revenues);
 
@@ -20,10 +22,18 @@ export default function useEntriesCategories() {
         [dispatch]
     );
 
+    const deleteCategory = useCallback(
+        (categoryId: number) =>
+            dispatch(CategoryActions.deleteCategory(categoryId)).unwrap(),
+        [dispatch]
+    );
+
     return {
         expenses,
         revenues,
+        fetching,
         fetchCategories,
         createCategory,
+        deleteCategory,
     };
 }

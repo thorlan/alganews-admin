@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CashFlow, CashFlowService } from 'orlandini-sdk';
+import getThunkStatus from '../utils/getThunkStatus';
 
 interface EntriesCategoryState {
     fetching: boolean;
@@ -42,6 +43,14 @@ export const createCategory = createAsyncThunk(
     }
 );
 
+export const deleteCategory = createAsyncThunk(
+    'cash-flow/categories/deleteCategory',
+    async (categoryId: number, { dispatch }) => {
+        await CashFlowService.removeExistingCategory(categoryId);
+        await dispatch(getCategories());
+    }
+);
+
 const entriesCategorySlice = createSlice({
     initialState,
     name: 'cash-flow/categories',
@@ -55,6 +64,24 @@ const entriesCategorySlice = createSlice({
         storeFetching(state, action: PayloadAction<boolean>) {
             state.fetching = action.payload;
         },
+    },
+    extraReducers(builder) {
+        const { error, loading, success } = getThunkStatus([
+            getCategories,
+            createCategory,
+            deleteCategory,
+        ]);
+
+        builder
+            .addMatcher(error, (state) => {
+                state.fetching = false;
+            })
+            .addMatcher(success, (state) => {
+                state.fetching = false;
+            })
+            .addMatcher(loading, (state) => {
+                state.fetching = true;
+            });
     },
 });
 

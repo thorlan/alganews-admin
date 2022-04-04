@@ -1,4 +1,13 @@
-import { Button, Row, Table, Form, Input, Col, notification } from 'antd';
+import {
+    Button,
+    Row,
+    Table,
+    Form,
+    Input,
+    Col,
+    notification,
+    Popconfirm,
+} from 'antd';
 import { CashFlow } from 'orlandini-sdk';
 import { useEffect } from 'react';
 import { DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -10,7 +19,8 @@ import { useCallback } from 'react';
 export default function EntryCategoryManager(props: {
     type: 'EXPENSE' | 'REVENUE';
 }) {
-    const { expenses, fetchCategories, revenues } = useEntriesCategories();
+    const { expenses, fetchCategories, fetching, revenues, deleteCategory } =
+        useEntriesCategories();
 
     const [showCreationModal, setShowCreationModal] = useState(false);
 
@@ -40,11 +50,13 @@ export default function EntryCategoryManager(props: {
                 />
             </Modal>
             <Row justify={'space-between'} style={{ marginBottom: 16 }}>
-                <Button>Atualizar categorias</Button>
+                <Button onClick={fetchCategories}>Atualizar categorias</Button>
                 <Button onClick={openCreationModal}>Adicionar categoria</Button>
             </Row>
             <Table<CashFlow.CategorySummary>
                 size='small'
+                rowKey={'id'}
+                loading={fetching}
                 dataSource={props.type === 'EXPENSE' ? expenses : revenues}
                 columns={[
                     {
@@ -60,16 +72,26 @@ export default function EntryCategoryManager(props: {
                         dataIndex: 'id',
                         title: 'Ações',
                         align: 'right',
-                        render(id: number) {
+                        render(id: number, record) {
                             return (
-                                <>
+                                <Popconfirm
+                                    title={'Remover categoria?'}
+                                    disabled={!record.canBeDeleted}
+                                    onConfirm={async () => {
+                                        await deleteCategory(id);
+                                        notification.success({
+                                            message: 'Categoria removida com sucesso',
+                                        });
+                                    }}
+                                >
                                     <Button
                                         danger
                                         type={'ghost'}
                                         size={'small'}
                                         icon={<DeleteOutlined />}
+                                        disabled={!record.canBeDeleted}
                                     />
-                                </>
+                                </Popconfirm>
                             );
                         },
                     },
