@@ -7,26 +7,96 @@ import {
     Divider,
     Space,
     Button,
+    Select,
+    Skeleton,
 } from 'antd';
-import { CashFlow } from 'orlandini-sdk';
-import { useCallback } from 'react';
-import { Moment } from 'moment';
-import CurrencyInput from '../components/CurrencyInput';
+import { CashFlow, CashFlowService } from 'orlandini-sdk';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import moment, { Moment } from 'moment';
 import { useForm } from 'antd/lib/form/Form';
+
+import CurrencyInput from '../components/CurrencyInput';
+import useEntriesCategories from '../../core/hooks/useEntriesCategories';
+import useCashFlow from '../../core/hooks/useCashFlow';
 
 type EntryFormSubmit = Omit<CashFlow.EntryInput, 'transactedOn'> & {
     transactedOn: Moment;
 };
 
-export default function EntryForm() {
+interface EntryFormProps {
+    type: 'EXPENSE' | 'REVENUE';
+    onSuccess: () => any;
+    editingEntry?: number | undefined;
+}
+
+export default function EntryForm({
+    type,
+    onSuccess,
+    editingEntry,
+}: EntryFormProps) {
+    const [loading, setLoading] = useState(false);
+
     const [form] = useForm();
+    const { revenues, expenses, fetching, fetchCategories } =
+        useEntriesCategories();
 
-    const handleFormSubmit = useCallback((form: EntryFormSubmit) => {
-        console.log(form);
-    }, []);
+    const {
+        createEntry,
+        fetching: fetchingEntries,
+        updateEntry,
+    } = useCashFlow(type);
 
-    return (
-        <Form form={form} layout={'vertical'} onFinish={handleFormSubmit}>
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
+    useEffect(() => {
+        if (editingEntry) {
+            setLoading(true);
+            CashFlowService.getExistingEntry(editingEntry)
+                .then((entry) => ({
+                    ...entry,
+                    transactedOn: moment(entry.transactedOn),
+                }))
+                .then(form.setFieldsValue)
+                .finally(() => setLoading(false));
+        }
+    }, [editingEntry, form]);
+
+    const categories = useMemo(
+        () => (type === 'EXPENSE' ? expenses : revenues),
+        [expenses, revenues, type]
+    );
+
+    const handleFormSubmit = useCallback(
+        async (form: EntryFormSubmit) => {
+            const newEntryDTO: CashFlow.EntryInput = {
+                ...form,
+                transactedOn: form.transactedOn.format('YYYY-MM-DD'),
+                type,
+            };
+
+            editingEntry
+                ? await updateEntry(editingEntry, newEntryDTO)
+                : await createEntry(newEntryDTO);
+            onSuccess();
+        },
+        [type, createEntry, onSuccess, updateEntry, editingEntry]
+    );
+
+    return loading ? (
+        <>
+            <Skeleton />
+            <Skeleton title={false} />
+            <Skeleton title={false} />
+        </>
+    ) : (
+        <Form
+            autoComplete={'off'}
+            form={form}
+            layout={'vertical'}
+            onFinish={handleFormSubmit}
+        >
             <Row gutter={16}>
                 <Col xs={24}>
                     <Form.Item
@@ -43,7 +113,13 @@ export default function EntryForm() {
                         name={['category', 'id']}
                         rules={[{ required: true, message: 'Campo obrigatório' }]}
                     >
-                        <Input placeholder={'Pagamento da AWS'} />
+                        <Select loading={fetching} placeholder={'Selecione uma categoria'}>
+                            {categories.map((category) => (
+                                <Select.Option key={category.id} value={category.id}>
+                                    {category.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Form.Item>
                 </Col>
                 <Col xs={24} lg={12}>
@@ -53,6 +129,7 @@ export default function EntryForm() {
                         rules={[{ required: true, message: 'Campo obrigatório' }]}
                     >
                         <CurrencyInput
+                            defaultValue={'R$ 0,00'}
                             onChange={(_, value) =>
                                 form.setFieldsValue({
                                     amount: value,
@@ -67,7 +144,13 @@ export default function EntryForm() {
                         name={'transactedOn'}
                         rules={[{ required: true, message: 'Campo obrigatório' }]}
                     >
-                        <DatePicker format={'DD/MM/YYYY'} style={{ width: '100%' }} />
+                        <DatePicker
+                            format={'DD/MM/YYYY'}
+                            style={{ width: '100%' }}
+                            disabledDate={(date) => {
+                                return date.isAfter(moment());
+                            }}
+                        />
                     </Form.Item>
                 </Col>
             </Row>
@@ -75,8 +158,12 @@ export default function EntryForm() {
             <Row justify={'end'}>
                 <Space>
                     <Button>Cancelar</Button>
-                    <Button type={'primary'} htmlType={'submit'}>
-                        Cadastrar despesa
+                    <Button
+                        loading={fetchingEntries}
+                        type={'primary'}
+                        htmlType={'submit'}
+                    >
+                        {editingEntry ? 'Atualizar' : 'Cadastrar'} despesa
                     </Button>
                 </Space>
             </Row>
