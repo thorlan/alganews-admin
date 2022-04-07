@@ -5,25 +5,43 @@ import { DeleteOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useEffect } from 'react';
 import useCashFlow from '../../core/hooks/useCashFlow';
 import transformIntoBrl from '../../core/utils/transformIntoBrl';
+import DoubleConfirm from '../components/DoubleConfirm';
+import { useHistory, useLocation } from 'react-router-dom';
+import { useRef } from 'react';
 
 interface EntriesListProps {
     onEdit: (entryId: number) => any;
+    onDetail: (entryId: number) => any;
 }
 
 export default function EntriesList(props: EntriesListProps) {
+    const location = useLocation();
+    const history = useHistory();
     const {
         entries,
         fetching,
         fetchEntries,
         setQuery,
-        query,
         selected,
         setSelected,
+        removeEntry,
     } = useCashFlow('EXPENSE');
+
+    const didMount = useRef(false);
 
     useEffect(() => {
         fetchEntries();
     }, [fetchEntries]);
+
+    useEffect(() => {
+        if (didMount.current) {
+            const params = new URLSearchParams(location.search);
+            const yearMonth = params.get('yearMonth');
+            if (yearMonth) setQuery({ yearMonth });
+        } else {
+            didMount.current = true;
+        }
+    }, [location.search, setQuery]);
 
     return (
         <Table<CashFlow.EntrySummary>
@@ -66,10 +84,9 @@ export default function EntriesList(props: EntriesListProps) {
                                     format={'YYYY - MMMM'}
                                     allowClear={false}
                                     onChange={(date) => {
-                                        setQuery({
-                                            ...query,
-                                            yearMonth:
-                                                date?.format('YYYY-MM') || moment().format('YYYY-MM'),
+                                        history.push({
+                                            search: `yearMonth=${date?.format('YYYY-MM') || moment().format('YYYY-MM')
+                                                }`,
                                         });
                                     }}
                                 />
@@ -90,22 +107,41 @@ export default function EntriesList(props: EntriesListProps) {
                     dataIndex: 'id',
                     title: 'Ações',
                     align: 'right',
-                    render(id: number) {
+                    render(id: number, record) {
                         return (
                             <Space>
-                                <Button
-                                    type={'text'}
-                                    size={'small'}
-                                    icon={<DeleteOutlined />}
-                                    danger
-                                />
+                                <DoubleConfirm
+                                    popConfirmTitle={'Remover despesa?'}
+                                    modalTitle={'Deseja mesmo remover essa despesa?'}
+                                    modalContent={
+                                        'Remover uma despesa pode gerar um impacto negativo no gráfico de receitas e despesas. Esta ação é irreversível'
+                                    }
+                                    onConfirm={async () => {
+                                        await removeEntry(id);
+                                    }}
+                                    disabled={!record.canBeDeleted}
+                                >
+                                    <Button
+                                        type={'text'}
+                                        size={'small'}
+                                        icon={<DeleteOutlined />}
+                                        danger
+                                    />
+                                </DoubleConfirm>
                                 <Button
                                     type={'text'}
                                     size={'small'}
                                     icon={<EditOutlined />}
                                     onClick={() => props.onEdit(id)}
                                 />
-                                <Button type={'text'} size={'small'} icon={<EyeOutlined />} />
+                                <Button
+                                    type={'text'}
+                                    size={'small'}
+                                    icon={<EyeOutlined />}
+                                    onClick={() => {
+                                        props.onDetail(id);
+                                    }}
+                                />
                             </Space>
                         );
                     },

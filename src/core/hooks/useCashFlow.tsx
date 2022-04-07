@@ -74,6 +74,16 @@ export default function useCashFlow(type: CashFlowEntryType) {
         [dispatch, type]
     );
 
+    const removeEntry = useCallback(
+        (entryId: number) =>
+            dispatch(
+                type === 'EXPENSE'
+                    ? ExpensesActions.removeExpense(entryId)
+                    : RevenuesActions.removeRevenue(entryId)
+            ).unwrap(),
+        [dispatch, type]
+    );
+
     const setSelected = useCallback(
         (keys: Key[]) =>
             dispatch(
@@ -101,6 +111,7 @@ export default function useCashFlow(type: CashFlowEntryType) {
         fetching,
         fetchEntries,
         removeEntries,
+        removeEntry,
         setQuery,
         setSelected,
         createEntry,

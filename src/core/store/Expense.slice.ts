@@ -12,13 +12,16 @@ interface ExpenseState {
     selected: Key[];
 }
 
+const params = new URLSearchParams(window.location.search);
+const yearMonth = params.get('yearMonth');
+
 const initialState: ExpenseState = {
     list: [],
     fetching: false,
     query: {
         type: 'EXPENSE',
         sort: ['transactedOn', 'desc'],
-        yearMonth: moment().format('YYYY-MM'),
+        yearMonth: yearMonth || moment().format('YYYY-MM'),
     },
     selected: [],
 };
@@ -66,6 +69,19 @@ export const removeEntriesInBatch = createAsyncThunk(
     async (ids: number[], { dispatch }) => {
         await CashFlowService.removeEntriesBatch(ids);
         await dispatch(getExpenses());
+    }
+);
+
+export const removeExpense = createAsyncThunk(
+    'cash-flow/expenses/removeExpense',
+    async (expenseId: number, { dispatch, rejectWithValue }) => {
+        try {
+            await CashFlowService.removeExistingEntry(expenseId);
+            await dispatch(getExpenses());
+        } catch (err) {
+            //@ts-ignore
+            return rejectWithValue({ ...err });
+        }
     }
 );
 
