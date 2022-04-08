@@ -1,4 +1,13 @@
-import { Button, Card, DatePicker, Space, Table, Tag, Tooltip } from 'antd';
+import {
+    Button,
+    Card,
+    DatePicker,
+    Descriptions,
+    Space,
+    Table,
+    Tag,
+    Tooltip,
+} from 'antd';
 import { CashFlow } from 'orlandini-sdk';
 import moment from 'moment';
 import { DeleteOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
@@ -12,9 +21,11 @@ import { useRef } from 'react';
 interface EntriesListProps {
     onEdit: (entryId: number) => any;
     onDetail: (entryId: number) => any;
+    type: 'EXPENSE' | 'REVENUE';
 }
 
 export default function EntriesList(props: EntriesListProps) {
+    const { type } = props;
     const location = useLocation();
     const history = useHistory();
     const {
@@ -25,7 +36,7 @@ export default function EntriesList(props: EntriesListProps) {
         selected,
         setSelected,
         removeEntry,
-    } = useCashFlow('EXPENSE');
+    } = useCashFlow(type);
 
     const didMount = useRef(false);
 
@@ -57,10 +68,80 @@ export default function EntriesList(props: EntriesListProps) {
             }}
             columns={[
                 {
+                    dataIndex: 'id',
+                    title: type === 'EXPENSE' ? 'Despesas' : 'Receitas',
+                    responsive: ['xs'],
+                    render(_, record) {
+                        return (
+                            <>
+                                <Descriptions column={1}>
+                                    <Descriptions.Item label={'Descrição'}>
+                                        {record.description}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Categoria'}>
+                                        {record.category.name}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Data'}>
+                                        {moment(record.transactedOn).format('DD/MM/YYYY')}
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label={'Valor'}>
+                                        {transformIntoBrl(record.amount)}
+                                    </Descriptions.Item>
+                                </Descriptions>
+                                <Space>
+                                    <DoubleConfirm
+                                        popConfirmTitle={
+                                            type === 'EXPENSE'
+                                                ? 'Remover despesa?'
+                                                : 'Remover receita?'
+                                        }
+                                        modalTitle={
+                                            type === 'EXPENSE'
+                                                ? 'Deseja mesmo remover essa despesa?'
+                                                : 'Deseja mesmo remover esta receita?'
+                                        }
+                                        modalContent={
+                                            type === 'EXPENSE'
+                                                ? 'Remover uma despesa pode gerar um impacto negativo no gráfico de receitas e despesas. Esta ação é irreversível'
+                                                : 'Remover uma receita pode gerar um impacto negativo no gráfico de receitas e despesas. Esta ação é irreversível'
+                                        }
+                                        onConfirm={async () => {
+                                            await removeEntry(record.id);
+                                        }}
+                                        disabled={!record.canBeDeleted}
+                                    >
+                                        <Button
+                                            type={'text'}
+                                            size={'small'}
+                                            icon={<DeleteOutlined />}
+                                            danger
+                                        />
+                                    </DoubleConfirm>
+                                    <Button
+                                        type={'text'}
+                                        size={'small'}
+                                        icon={<EditOutlined />}
+                                        onClick={() => props.onEdit(record.id)}
+                                    />
+                                    <Button
+                                        type={'text'}
+                                        size={'small'}
+                                        icon={<EyeOutlined />}
+                                        onClick={() => {
+                                            props.onDetail(record.id);
+                                        }}
+                                    />
+                                </Space>
+                            </>
+                        );
+                    },
+                },
+                {
                     dataIndex: 'description',
                     title: 'Descrição',
                     width: 300,
                     ellipsis: true,
+                    responsive: ['sm'],
                     render(description: CashFlow.EntrySummary['description']) {
                         return <Tooltip title={description}>{description}</Tooltip>;
                     },
@@ -69,6 +150,8 @@ export default function EntriesList(props: EntriesListProps) {
                     dataIndex: 'category',
                     title: 'Categoria',
                     align: 'center',
+                    width: 120,
+                    responsive: ['sm'],
                     render(category: CashFlow.EntrySummary['category']) {
                         return <Tag>{category.name}</Tag>;
                     },
@@ -77,6 +160,8 @@ export default function EntriesList(props: EntriesListProps) {
                     dataIndex: 'transactedOn',
                     title: 'Data',
                     align: 'center',
+                    responsive: ['sm'],
+                    width: 120,
                     filterDropdown() {
                         return (
                             <Card>
@@ -101,20 +186,32 @@ export default function EntriesList(props: EntriesListProps) {
                     dataIndex: 'amount',
                     title: 'Valor',
                     align: 'right',
+                    width: 120,
+                    responsive: ['sm'],
                     render: transformIntoBrl,
                 },
                 {
                     dataIndex: 'id',
                     title: 'Ações',
                     align: 'right',
+                    responsive: ['sm'],
+                    width: 120,
                     render(id: number, record) {
                         return (
                             <Space>
                                 <DoubleConfirm
-                                    popConfirmTitle={'Remover despesa?'}
-                                    modalTitle={'Deseja mesmo remover essa despesa?'}
+                                    popConfirmTitle={
+                                        type === 'EXPENSE' ? 'Remover despesa?' : 'Remover receita?'
+                                    }
+                                    modalTitle={
+                                        type === 'EXPENSE'
+                                            ? 'Deseja mesmo remover essa despesa?'
+                                            : 'Deseja mesmo remover esta receita?'
+                                    }
                                     modalContent={
-                                        'Remover uma despesa pode gerar um impacto negativo no gráfico de receitas e despesas. Esta ação é irreversível'
+                                        type === 'EXPENSE'
+                                            ? 'Remover uma despesa pode gerar um impacto negativo no gráfico de receitas e despesas. Esta ação é irreversível'
+                                            : 'Remover uma receita pode gerar um impacto negativo no gráfico de receitas e despesas. Esta ação é irreversível'
                                     }
                                     onConfirm={async () => {
                                         await removeEntry(id);
