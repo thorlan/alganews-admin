@@ -11,7 +11,9 @@ import 'moment/locale/pt-br';
 import DefaultLayout from './app/layouts/default/';
 import Routes from './app/routes';
 
+import './auth/httpConfig';
 import './index.less';
+
 moment.locale('pt-br');
 
 ReactDOM.render(

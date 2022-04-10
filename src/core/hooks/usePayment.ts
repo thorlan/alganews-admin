@@ -1,5 +1,5 @@
-import { Payment, PayrollService as PaymentService, Post } from 'orlandini-sdk';
-import { ResourceNotFoundError } from 'orlandini-sdk/dist/errors';
+import { Payment, PaymentService, Post } from 'danielbonifacio-sdk';
+import { ResourceNotFoundError } from 'danielbonifacio-sdk/dist/errors';
 import { useCallback } from 'react';
 import { useState } from 'react';
 

@@ -8,7 +8,7 @@ import {
     notification,
     Popconfirm,
 } from 'antd';
-import { CashFlow } from 'orlandini-sdk';
+import { CashFlow } from 'danielbonifacio-sdk';
 import { useEffect } from 'react';
 import { DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import useEntriesCategories from '../../core/hooks/useEntriesCategories';

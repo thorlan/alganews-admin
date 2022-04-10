@@ -1,4 +1,4 @@
-import { Metric } from "orlandini-sdk";
+import { Metric } from "danielbonifacio-sdk";
 
 export default function transformDataIntoAntdChart(data: Metric.MonthlyRevenuesExpenses) {
 

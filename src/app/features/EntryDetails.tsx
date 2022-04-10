@@ -1,5 +1,5 @@
 import { Descriptions, Skeleton } from 'antd';
-import { CashFlow, CashFlowService } from 'orlandini-sdk';
+import { CashFlow, CashFlowService } from 'danielbonifacio-sdk';
 import moment from 'moment';
 import { useEffect } from 'react';
 import { useCallback, useState } from 'react';

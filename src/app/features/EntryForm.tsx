@@ -10,7 +10,7 @@ import {
     Select,
     Skeleton,
 } from 'antd';
-import { CashFlow, CashFlowService } from 'orlandini-sdk';
+import { CashFlow, CashFlowService } from 'danielbonifacio-sdk';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import moment, { Moment } from 'moment';
 import { useForm } from 'antd/lib/form/Form';

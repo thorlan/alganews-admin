@@ -1,5 +1,5 @@
 import { Descriptions, Skeleton, Table, Tooltip } from "antd";
-import { Payment, Post } from "orlandini-sdk";
+import { Payment, Post } from "danielbonifacio-sdk";
 
 interface PaymentPostsProps {
     loading?: boolean,

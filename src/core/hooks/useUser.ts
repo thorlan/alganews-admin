@@ -1,6 +1,6 @@
-import { User, UserService } from "orlandini-sdk";
+import { User, UserService } from "danielbonifacio-sdk";
 import { useCallback, useState } from "react";
-import { ResourceNotFoundError } from 'orlandini-sdk/dist/errors/';
+import { ResourceNotFoundError } from 'danielbonifacio-sdk/dist/errors/';
 
 export default function useUser() {
 

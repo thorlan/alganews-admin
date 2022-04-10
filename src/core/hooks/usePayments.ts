@@ -1,5 +1,5 @@
 import { Key } from 'antd/lib/table/interface';
-import { Payment } from 'orlandini-sdk';
+import { Payment } from 'danielbonifacio-sdk';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';

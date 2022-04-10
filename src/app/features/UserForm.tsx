@@ -21,10 +21,10 @@ import {
     FileService,
     User,
     UserService,
-} from 'orlandini-sdk';
+} from 'danielbonifacio-sdk';
 import { UserOutlined } from '@ant-design/icons';
 import ImageCrop from 'antd-img-crop';
-import CustomError from 'orlandini-sdk/dist/CustomError';
+import CustomError from 'danielbonifacio-sdk/dist/CustomError';
 import MaskedInput from 'antd-mask-input';
 import { Moment } from 'moment';
 import { useHistory } from 'react-router-dom';

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Key } from 'antd/lib/table/interface';
-import { CashFlow, CashFlowService } from 'orlandini-sdk';
+import { CashFlow, CashFlowService } from 'danielbonifacio-sdk';
 import moment from 'moment';
 import { RootState } from '.';
 import getThunkStatus from '../utils/getThunkStatus';

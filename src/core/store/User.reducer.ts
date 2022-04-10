@@ -5,7 +5,7 @@ import {
     isPending,
     isRejected,
 } from '@reduxjs/toolkit';
-import { User, UserService } from 'orlandini-sdk';
+import { User, UserService } from 'danielbonifacio-sdk';
 
 interface UserState {
     list: User.Summary[];

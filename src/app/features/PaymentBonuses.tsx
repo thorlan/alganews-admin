@@ -1,5 +1,5 @@
 import { Descriptions, Skeleton, Typography } from "antd";
-import { Payment } from "orlandini-sdk";
+import { Payment } from "danielbonifacio-sdk";
 
 interface PaymentBonusesProps {
     loading?: boolean,

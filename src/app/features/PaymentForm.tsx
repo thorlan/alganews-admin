@@ -16,7 +16,7 @@ import {
     Tooltip,
 } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
-import { Payment } from 'orlandini-sdk';
+import { Payment } from 'danielbonifacio-sdk';
 import moment, { Moment } from 'moment';
 import { FieldData } from 'rc-field-form/lib/interface';
 import { useCallback } from 'react';
@@ -28,8 +28,8 @@ import usePayment from '../../core/hooks/usePayment';
 import transformIntoBrl from '../../core/utils/transformIntoBrl';
 import { useState } from 'react';
 import AskForPaymentPreview from './AskForPaymentPreview';
-import CustomError from 'orlandini-sdk/dist/CustomError';
-import { BusinessError } from 'orlandini-sdk/dist/errors';
+import CustomError from 'danielbonifacio-sdk/dist/CustomError';
+import { BusinessError } from 'danielbonifacio-sdk/dist/errors';
 import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 

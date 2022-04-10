@@ -1,4 +1,4 @@
-import { User } from 'orlandini-sdk';
+import { User } from 'danielbonifacio-sdk';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';

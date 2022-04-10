@@ -16,10 +16,13 @@
     "antd": "^4.16.8",
     "antd-img-crop": "^4.1.0",
     "antd-mask-input": "^0.1.15",
+    "axios": "^0.26.1",
     "craco-less": "^1.18.0",
+    "danielbonifacio-sdk": "^3.4.0",
     "date-fns": "^2.23.0",
     "lodash.debounce": "^4.0.8",
-    "orlandini-sdk": "^2.7.0",
+    "pkce-challenge": "^3.0.0",
+    "qs": "^6.10.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^7.2.4",
@@ -55,6 +58,7 @@
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.6",
+    "@types/qs": "^6.9.7",
     "@types/react-router-dom": "^5.1.8"
   }
 }

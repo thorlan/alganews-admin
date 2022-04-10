@@ -1,6 +1,6 @@
 import { Table, Tag, Switch, Button, Space, Avatar, Card, Input, Descriptions, Tooltip, Row } from "antd";
 import { format } from "date-fns";
-import { User } from "orlandini-sdk";
+import { User } from "danielbonifacio-sdk";
 import { useEffect } from "react";
 import { EyeOutlined, EditOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 

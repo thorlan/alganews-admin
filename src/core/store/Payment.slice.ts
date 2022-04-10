@@ -7,7 +7,7 @@ import {
     PayloadAction,
 } from '@reduxjs/toolkit';
 import { Key } from 'antd/lib/table/interface';
-import { Payment, PayrollService as PaymentService } from 'orlandini-sdk';
+import { Payment, PaymentService } from 'danielbonifacio-sdk';
 import { RootState } from '.';
 
 interface PaymentState {

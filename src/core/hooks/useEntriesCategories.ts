@@ -1,4 +1,4 @@
-import { CashFlow } from 'orlandini-sdk';
+import { CashFlow } from 'danielbonifacio-sdk';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';

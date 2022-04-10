@@ -1,5 +1,5 @@
 import { Card, Row, Typography } from 'antd';
-import CustomError from 'orlandini-sdk/dist/CustomError';
+import CustomError from 'danielbonifacio-sdk/dist/CustomError';
 import tax from '../../assets/illustrations/tax.svg';
 import confusing from '../../assets/illustrations/confusing.svg';
 

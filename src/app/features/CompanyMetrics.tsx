@@ -1,5 +1,5 @@
 import { Area, AreaConfig } from '@ant-design/charts';
-import { MetricService } from 'orlandini-sdk';
+import { MetricService } from 'danielbonifacio-sdk';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
 import transformDataIntoAntdChart from '../../core/utils/transformDataIntoAntdChart';

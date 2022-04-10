@@ -8,7 +8,7 @@ import {
     Tag,
     Tooltip,
 } from 'antd';
-import { CashFlow } from 'orlandini-sdk';
+import { CashFlow } from 'danielbonifacio-sdk';
 import moment from 'moment';
 import { DeleteOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useEffect } from 'react';

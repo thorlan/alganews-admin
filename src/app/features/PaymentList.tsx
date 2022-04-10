@@ -10,7 +10,7 @@ import {
     Tag,
     Tooltip,
 } from 'antd';
-import { Payment } from 'orlandini-sdk';
+import { Payment } from 'danielbonifacio-sdk';
 import moment from 'moment';
 import { useEffect } from 'react';
 import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';

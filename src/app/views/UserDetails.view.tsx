@@ -26,7 +26,7 @@ import {
 import useUser from '../../core/hooks/useUser';
 import { WarningFilled } from '@ant-design/icons';
 import usePosts from '../../core/hooks/usePosts';
-import { Post } from 'orlandini-sdk';
+import { Post } from 'danielbonifacio-sdk';
 import moment from 'moment';
 import NotFoundError from '../components/NotFoundError';
 import usePageTitle from '../../core/hooks/usePageTitle';

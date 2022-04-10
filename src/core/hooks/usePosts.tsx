@@ -1,4 +1,4 @@
-import { PostService, Post } from 'orlandini-sdk';
+import { PostService, Post } from 'danielbonifacio-sdk';
 import { useCallback, useState } from 'react';
 
 export default function usePosts() {

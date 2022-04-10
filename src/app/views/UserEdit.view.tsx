@@ -1,6 +1,6 @@
 import { Card, notification, Skeleton } from 'antd';
 import moment from 'moment';
-import { User, UserService } from 'orlandini-sdk';
+import { User, UserService } from 'danielbonifacio-sdk';
 import { useCallback, useEffect } from "react";
 import { Redirect, useHistory, useParams } from 'react-router-dom';
 import usePageTitle from '../../core/hooks/usePageTitle';

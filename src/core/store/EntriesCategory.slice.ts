@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CashFlow, CashFlowService } from 'orlandini-sdk';
+import { CashFlow, CashFlowService } from 'danielbonifacio-sdk';
 import getThunkStatus from '../utils/getThunkStatus';
 
 interface EntriesCategoryState {
