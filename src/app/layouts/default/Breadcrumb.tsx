@@ -1,11 +1,13 @@
 import { Breadcrumb as AntdBreadcrumb } from 'antd';
+import useBreadcrumb from '../../../core/hooks/useBreadcrumb';
 
 export default function Breadcrumb() {
+    const { breadcrumb } = useBreadcrumb();
     return (
-        <AntdBreadcrumb style={{ margin: '16px 0' }} className="no-print">
-            <AntdBreadcrumb.Item>Home</AntdBreadcrumb.Item>
-            <AntdBreadcrumb.Item>List</AntdBreadcrumb.Item>
-            <AntdBreadcrumb.Item>App</AntdBreadcrumb.Item>
+        <AntdBreadcrumb className='no-print' style={{ margin: '16px 0' }}>
+            {breadcrumb.map((bc, index) => (
+                <AntdBreadcrumb.Item key={index}>{bc}</AntdBreadcrumb.Item>
+            ))}
         </AntdBreadcrumb>
     );
 }

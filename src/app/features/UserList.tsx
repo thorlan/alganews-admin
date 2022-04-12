@@ -24,15 +24,15 @@ import {
 } from '@ant-design/icons';
 import { ColumnProps } from 'antd/lib/table';
 import { Link } from 'react-router-dom';
-import { ForbiddenError } from 'danielbonifacio-sdk/dist/errors';
 import Forbidden from '../components/Forbidden';
+import { useCallback } from 'react';
 
 export default function UserList() {
     const { users, fetchUsers, toggleUserStatus, fetching } = useUsers();
 
     const [forbidden, setForbidden] = useState(false);
 
-    useEffect(() => {
+    const _fetchUsers = useCallback(() => {
         fetchUsers().catch((err) => {
             if (err?.data?.status === 403) {
                 setForbidden(true);
@@ -41,6 +41,10 @@ export default function UserList() {
             throw err;
         });
     }, [fetchUsers]);
+
+    useEffect(() => {
+        _fetchUsers();
+    }, [_fetchUsers]);
 
     const getColumnSearchProps = (
         dataIndex: keyof User.Summary,
@@ -97,7 +101,7 @@ export default function UserList() {
         <>
             <Row justify='end'>
                 <Button
-                    onClick={() => fetchUsers()}
+                    onClick={_fetchUsers}
                     loading={fetching}
                     icon={<ReloadOutlined />}
                 >
@@ -211,6 +215,10 @@ export default function UserList() {
                         render(active: boolean, user) {
                             return (
                                 <Switch
+                                    disabled={
+                                        (active && !user.canBeDeactivated) ||
+                                        (!active && !user.canBeActivated)
+                                    }
                                     onChange={() => {
                                         toggleUserStatus(user);
                                     }}

@@ -7,11 +7,12 @@ import usePageTitle from '../../core/hooks/usePageTitle';
 import useUser from "../../core/hooks/useUser";
 import NotFoundError from '../components/NotFoundError';
 import UserForm from "../features/UserForm";
+import useBreadcrumb from '../../core/hooks/useBreadcrumb';
 
 export default function UserEditView() {
 
     usePageTitle('Edição de Usuário');
-
+    useBreadcrumb('Usuários/Edição');
     const params = useParams<{ id: string }>()
     const { user, fetchUser, notFound } = useUser();
     const history = useHistory();

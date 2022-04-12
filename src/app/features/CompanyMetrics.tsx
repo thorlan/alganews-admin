@@ -1,6 +1,4 @@
 import { Area, AreaConfig } from '@ant-design/charts';
-import { Card, Space, Typography } from 'antd';
-import { LockFilled } from '@ant-design/icons';
 import { MetricService } from 'danielbonifacio-sdk';
 import { ForbiddenError } from 'danielbonifacio-sdk/dist/errors';
 import format from 'date-fns/format'
@@ -27,8 +25,6 @@ export default function CompanyMetrics() {
             .then(transformDataIntoAntdChart)
             .then(setData)
             .catch((err) => {
-                alert('ae')
-                console.log(err)
                 if (err instanceof ForbiddenError) {
                     setForbidden(true);
                     return;

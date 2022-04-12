@@ -23,8 +23,6 @@ export const getAllUsers = createAsyncThunk(
         try {
             return await UserService.getAllUsers();
         } catch (err) {
-            alert('catch')
-            console.log(err)
             //@ts-ignore
             return rejectWithValue({ ...err });
         }

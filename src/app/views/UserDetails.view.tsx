@@ -10,37 +10,34 @@ import {
     Descriptions,
     Divider,
     Popconfirm,
-    Switch,
     Table,
-    Tooltip
+    Switch,
+    Tooltip,
 } from 'antd';
 import Avatar from 'antd/lib/avatar/avatar';
 import useBreakpoint from 'antd/lib/grid/hooks/useBreakpoint';
 import confirm from 'antd/lib/modal/confirm';
-import { useEffect, useState } from 'react';
-import {
-    Link,
-    Redirect,
-    useParams,
-} from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, Redirect, useParams } from 'react-router-dom';
 import useUser from '../../core/hooks/useUser';
 import { WarningFilled } from '@ant-design/icons';
-import usePosts from '../../core/hooks/usePosts';
-import { Post } from 'danielbonifacio-sdk';
 import moment from 'moment';
+import { Post } from 'danielbonifacio-sdk';
+import usePosts from '../../core/hooks/usePosts';
 import NotFoundError from '../components/NotFoundError';
 import usePageTitle from '../../core/hooks/usePageTitle';
+import { useState } from 'react';
 import formatPhone from '../../core/utils/formatPhone';
+import useBreadcrumb from '../../core/hooks/useBreadcrumb';
 
 export default function UserDetailsView() {
-    usePageTitle('Detalhes do Usuário');
+    usePageTitle('Detalhes do usuário');
     const params = useParams<{ id: string }>();
     const [page, setPage] = useState(0);
     const { lg } = useBreakpoint();
 
-    const { user, fetchUser, notFound, toggleUserStatus } =
-        useUser();
-
+    const { user, fetchUser, notFound, toggleUserStatus } = useUser();
+    useBreadcrumb(`Usuários/${user?.name || 'Detalhes'}`);
     const {
         fetchUserPosts,
         posts,
@@ -50,26 +47,25 @@ export default function UserDetailsView() {
     } = usePosts();
 
     useEffect(() => {
-        if (!isNaN(Number(params.id)))
-            fetchUser(Number(params.id));
+        if (!isNaN(Number(params.id))) fetchUser(Number(params.id));
     }, [fetchUser, params.id]);
 
     useEffect(() => {
         if (user?.role === 'EDITOR') fetchUserPosts(user.id, page);
     }, [fetchUserPosts, user, page]);
 
-    if (isNaN(Number(params.id)))
-        return <Redirect to={'/usuarios'} />;
+    if (isNaN(Number(params.id))) return <Redirect to={'/usuarios'} />;
 
-    if (notFound) {
-        return <Card>
-            <NotFoundError
-                title={'Usuário não encontrado'}
-                actionDestination={'/usuarios'}
-                actionTitle={'Voltar para lista de usuários'}
-            />
-        </Card>;
-    }
+    if (notFound)
+        return (
+            <Card>
+                <NotFoundError
+                    title={'Usuário não encontrado'}
+                    actionDestination={'/usuarios'}
+                    actionTitle={'Voltar para lista de usuários'}
+                />
+            </Card>
+        );
 
     if (!user) return <Skeleton />;
 
@@ -86,9 +82,7 @@ export default function UserDetailsView() {
                     direction={'vertical'}
                     align={lg ? 'start' : 'center'}
                 >
-                    <Typography.Title level={2}>
-                        {user.name}
-                    </Typography.Title>
+                    <Typography.Title level={2}>{user.name}</Typography.Title>
                     <Typography.Paragraph
                         style={{
                             textAlign: lg ? 'left' : 'center',
@@ -101,11 +95,13 @@ export default function UserDetailsView() {
                     </Typography.Paragraph>
                     <Space>
                         <Link to={`/usuarios/edicao/${user.id}`}>
-                            <Button type={'primary'}>
-                                Editar perfil
-                            </Button>
+                            <Button type={'primary'}>Editar perfil</Button>
                         </Link>
                         <Popconfirm
+                            disabled={
+                                (user.active && !user.canBeDeactivated) ||
+                                (!user.active && !user.canBeActivated)
+                            }
                             title={
                                 user.active
                                     ? `Desabilitar ${user.name}`
@@ -113,11 +109,7 @@ export default function UserDetailsView() {
                             }
                             onConfirm={() => {
                                 confirm({
-                                    icon: (
-                                        <WarningFilled
-                                            style={{ color: '#09f' }}
-                                        />
-                                    ),
+                                    icon: <WarningFilled style={{ color: '#09f' }} />,
                                     title: `Tem certeza que deseja ${user.active
                                         ? `desabilitar ${user.name}?`
                                         : `habilitar ${user.name}?`
@@ -133,7 +125,13 @@ export default function UserDetailsView() {
                                 });
                             }}
                         >
-                            <Button type={'primary'}>
+                            <Button
+                                disabled={
+                                    (user.active && !user.canBeDeactivated) ||
+                                    (!user.active && !user.canBeActivated)
+                                }
+                                type={'primary'}
+                            >
                                 {user.active ? 'Desabilitar' : 'Habilitar'}
                             </Button>
                         </Popconfirm>
@@ -141,28 +139,18 @@ export default function UserDetailsView() {
                 </Space>
             </Col>
             <Divider />
-            {
-                !!user.skills?.length && <>
-                    <Col xs={24} lg={12}>
-                        <Space
-                            direction='vertical'
-                            style={{ width: '100%' }}
-                        >
-                            {user.skills?.map((skill) => (
-                                <div key={skill.name}>
-                                    <Typography.Text>
-                                        {skill.name}
-                                    </Typography.Text>
-                                    <Progress
-                                        percent={skill.percentage}
-                                        success={{ percent: 0 }}
-                                    />
-                                </div>
-                            ))}
-                        </Space>
-                    </Col>
-                </>
-            }
+            {!!user.skills?.length && (
+                <Col xs={24} lg={12}>
+                    <Space direction='vertical' style={{ width: '100%' }}>
+                        {user.skills?.map((skill) => (
+                            <div key={skill.name}>
+                                <Typography.Text>{skill.name}</Typography.Text>
+                                <Progress percent={skill.percentage} success={{ percent: 0 }} />
+                            </div>
+                        ))}
+                    </Space>
+                </Col>
+            )}
             <Col xs={24} lg={12}>
                 <Descriptions column={1} bordered size={'small'}>
                     <Descriptions.Item label={'País'}>
@@ -179,8 +167,7 @@ export default function UserDetailsView() {
                     </Descriptions.Item>
                 </Descriptions>
             </Col>
-            {
-                user.role === 'EDITOR' &&
+            {user.role === 'EDITOR' && (
                 <>
                     <Divider />
                     <Col xs={24}>
@@ -189,9 +176,9 @@ export default function UserDetailsView() {
                             rowKey={'id'}
                             loading={loadingFetch}
                             pagination={{
-                                onChange: page => setPage(page - 1),
+                                onChange: (page) => setPage(page - 1),
                                 total: posts?.totalElements,
-                                pageSize: 10
+                                pageSize: 10,
                             }}
                             columns={[
                                 {
@@ -204,16 +191,10 @@ export default function UserDetailsView() {
                                                     {element.title}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label={'Criação'}>
-                                                    {moment(element.createdAt).format(
-                                                        'DD/MM/YYYY'
-                                                    )}
+                                                    {moment(element.createdAt).format('DD/MM/YYYY')}
                                                 </Descriptions.Item>
-                                                <Descriptions.Item
-                                                    label={'Atualização'}
-                                                >
-                                                    {moment(element.updatedAt).format(
-                                                        'DD/MM/YYYY'
-                                                    )}
+                                                <Descriptions.Item label={'Atualização'}>
+                                                    {moment(element.updatedAt).format('DD/MM/YYYY')}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label={'Publicado'}>
                                                     <Switch checked={element.published} />
@@ -229,9 +210,7 @@ export default function UserDetailsView() {
                                     width: 300,
                                     responsive: ['sm'],
                                     render(title: string) {
-                                        return (
-                                            <Tooltip title={title}>{title}</Tooltip>
-                                        );
+                                        return <Tooltip title={title}>{title}</Tooltip>;
                                     },
                                 },
                                 {
@@ -240,8 +219,7 @@ export default function UserDetailsView() {
                                     width: 180,
                                     align: 'center',
                                     responsive: ['sm'],
-                                    render: (item) =>
-                                        moment(item).format('DD/MM/YYYY'),
+                                    render: (item) => moment(item).format('DD/MM/YYYY'),
                                 },
                                 {
                                     dataIndex: 'updatedAt',
@@ -250,9 +228,7 @@ export default function UserDetailsView() {
                                     align: 'center',
                                     responsive: ['sm'],
                                     render: (item) =>
-                                        moment(item).format(
-                                            'DD/MM/YYYY \\à\\s hh:mm'
-                                        ),
+                                        moment(item).format('DD/MM/YYYY \\à\\s hh:mm'),
                                 },
                                 {
                                     dataIndex: 'published',
@@ -278,7 +254,7 @@ export default function UserDetailsView() {
                         />
                     </Col>
                 </>
-            }
+            )}
         </Row>
     );
 }

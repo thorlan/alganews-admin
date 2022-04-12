@@ -1,7 +1,11 @@
-import PaymentForm from "../features/PaymentForm";
+import useBreadcrumb from '../../core/hooks/useBreadcrumb';
+import PaymentForm from '../features/PaymentForm';
 
 export default function PaymentCreateView() {
-    return <>
-        <PaymentForm />
-    </>
+    useBreadcrumb('Pagamentos/Cadastro');
+    return (
+        <>
+            <PaymentForm />
+        </>
+    );
 }
