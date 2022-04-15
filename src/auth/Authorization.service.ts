@@ -2,8 +2,11 @@ import axios from 'axios';
 import qs from 'qs';
 import pkceChallenge from 'pkce-challenge';
 
+const APP_BASE_URL = process.env.REACT_APP_BASE_URL;
+const AUTH_BASE_URL = process.env.REACT_APP_AUTH_SERVER_BASE_URL;
+
 const authServer = axios.create({
-    baseURL: 'http://localhost:8081',
+    baseURL: AUTH_BASE_URL,
 });
 
 authServer.interceptors.response.use(undefined, async (error) => {
@@ -27,7 +30,7 @@ export default class AuthService {
     public static imperativelySendToLogout() {
         window.localStorage.clear();
         window.location.href =
-            'http://localhost:8081/logout?redirect=http://localhost:3000';
+            `${AUTH_BASE_URL}/logout?redirect=${APP_BASE_URL}`;
     }
 
     public static async getNewToken(config: {
@@ -83,7 +86,7 @@ export default class AuthService {
             code_challenge_method: 'S256',
         });
 
-        return `http://localhost:8081/oauth/authorize?${config}`;
+        return `${AUTH_BASE_URL}/oauth/authorize?${config}`;
     }
 
     public static async imperativelySendToLoginScreen() {

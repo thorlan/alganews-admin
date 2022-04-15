@@ -20,6 +20,8 @@ import { useMemo } from 'react';
 import GlobalLoading from './components/GlobalLoading';
 import { Authentication } from '../auth/Auth';
 
+const APP_BASE_URL = process.env.REACT_APP_BASE_URL;
+
 export default function Routes() {
     const history = useHistory();
     const location = useLocation();
@@ -89,7 +91,7 @@ export default function Routes() {
                     await AuthService.getFirstAccessTokens({
                         code,
                         codeVerifier,
-                        redirectUri: 'http://localhost:3000/authorize',
+                        redirectUri: `${APP_BASE_URL}/authorize`,
                     });
 
                 AuthService.setAccessToken(access_token);

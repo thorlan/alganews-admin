@@ -2,6 +2,11 @@ import axios from 'axios';
 import Service from 'danielbonifacio-sdk/dist/Service';
 import AuthService from './Authorization.service';
 
+const { REACT_APP_API_URL } = process.env;
+if (REACT_APP_API_URL) {
+    Service.setBaseUrl(REACT_APP_API_URL);
+}
+
 Service.setRequestInterceptors(async (request) => {
     const accessToken = AuthService.getAccessToken();
 
